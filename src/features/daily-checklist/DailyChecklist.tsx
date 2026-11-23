@@ -32,6 +32,9 @@ function getChecklistDate() {
 export default function DailyChecklist() {
     const [isChecklistOpen, setIsChecklistOpen] = useState(false)
 
+    // 記錄目前正在拖曳的項目。
+    const [draggedItemId, setDraggedItemId] = useState<string | null>(null)
+
     const [checklistData, setChecklistData] = useState(() => {
         const savedItems = localStorage.getItem('dailyChecklistItems')
         const savedDate = localStorage.getItem('dailyChecklistDate')
@@ -121,6 +124,25 @@ export default function DailyChecklist() {
         setItems(prev => prev.filter(item => item.id !== id))
     }
 
+    // 拖曳排序：將來源項目移動到目標項目的位置。
+    const moveItem = (draggedId: string, targetId: string) => {
+        if (draggedId === targetId) return
+
+        setItems(prev => {
+            const newItems = [...prev]
+
+            const fromIndex = newItems.findIndex(item => item.id === draggedId)
+            const targetIndex = newItems.findIndex(item => item.id === targetId)
+
+            if (fromIndex === -1 || targetIndex === -1) return prev
+
+            const [movedItem] = newItems.splice(fromIndex, 1)
+            newItems.splice(targetIndex, 0, movedItem)
+
+            return newItems
+        })
+    }
+
     const completedCount = items.filter(item => item.checked).length
 
     return (
@@ -142,7 +164,26 @@ export default function DailyChecklist() {
 
                     <div className="space-y-3">
                         {items.map(item => (
-                            <div key={item.id} className="flex items-center gap-3">
+                            <div
+                                key={item.id}
+                                draggable
+                                onDragStart={e => {
+                                    setDraggedItemId(item.id)
+                                    e.dataTransfer.setData('text/plain', item.id)
+                                    e.dataTransfer.effectAllowed = 'move'
+                                }}
+                                onDragEnd={() => setDraggedItemId(null)}
+                                onDragOver={e => e.preventDefault()}
+                                onDrop={e => {
+                                    e.preventDefault()
+
+                                    const draggedId = e.dataTransfer.getData('text/plain')
+                                    moveItem(draggedId, item.id)
+                                    setDraggedItemId(null)
+                                }}
+                                className={`flex items-center gap-3 rounded ${draggedItemId === item.id ? 'opacity-50' : ''
+                                    }`}
+                            >
                                 <input
                                     type="checkbox"
                                     checked={item.checked}
@@ -150,22 +191,33 @@ export default function DailyChecklist() {
                                     className="h-4 w-4 cursor-pointer"
                                 />
 
-                                <input
-                                    type="text"
-                                    value={item.title}
-                                    onChange={e => updateItem(item.id, e.target.value)}
-                                    placeholder="輸入打卡項目"
-                                    className={`min-w-0 flex-1 rounded border border-gray-200 px-3 py-2 outline-none focus:border-gray-400 ${item.checked ? 'text-gray-400 line-through' : ''
-                                        }`}
-                                />
+                                <div className="flex min-w-0 flex-1 items-center gap-3 rounded border border-gray-200 px-3 focus-within:border-gray-400">
+                                    <input
+                                        type="text"
+                                        value={item.title}
+                                        onChange={e => updateItem(item.id, e.target.value)}
+                                        placeholder="輸入打卡項目"
+                                        className={`min-w-0 flex-1 py-2 outline-none ${item.checked ? 'text-gray-400 line-through' : ''
+                                            }`}
+                                    />
 
-                                <button
-                                    onClick={() => deleteItem(item.id)}
-                                    className="cursor-pointer text-gray-400 hover:text-red-500"
-                                    aria-label="刪除打卡項目"
-                                >
-                                    ✕
-                                </button>
+                                    <span
+                                        className="cursor-grab select-none text-gray-400 active:cursor-grabbing"
+                                        title="拖曳排序"
+                                    >
+                                        ⠿
+                                    </span>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => deleteItem(item.id)}
+                                        className="cursor-pointer text-gray-400 hover:text-red-500"
+                                        aria-label="刪除打卡項目"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+
                             </div>
                         ))}
                     </div>
