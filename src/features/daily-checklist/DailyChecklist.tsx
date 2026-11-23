@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from 'react'
 import AddButton from '../../components/AddButton'
+import { RESET_HOUR_KEY } from '../settings/Settings'
 
 type ChecklistItem = {
     id: string
@@ -8,14 +9,16 @@ type ChecklistItem = {
     checked: boolean
 }
 
-// 預設凌晨 04:00 重置，未來可由設定頁面修改。
-const RESET_HOUR = 4
+// 預設凌晨 04:00 重置，可由設定頁面修改。
+function getResetHour() {
+    return Number(localStorage.getItem(RESET_HOUR_KEY) ?? 4)
+}
 
 // 取得目前所屬的「打卡日」。
 function getChecklistDate() {
     const date = new Date()
 
-    if (date.getHours() < RESET_HOUR) {
+    if (date.getHours() < getResetHour()) {
         date.setDate(date.getDate() - 1)
     }
 
