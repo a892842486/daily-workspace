@@ -8,6 +8,7 @@ import type { FocusRecord } from './FocusRecord'
 import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
 import { initializeTimerAudio, playTimerSound } from './playTimerSound'
 import type { TimerSound } from './playTimerSound'
+import type { DateTimePreferences } from '../settings/dateTimePreferences'
 
 type TimerMode = 'focus' | 'shortBreak' | 'longBreak'
 
@@ -38,7 +39,13 @@ const defaultDurations: TimerDurations = {
     longBreak: 15 * 60,
 }
 
-export default function PomodoroTimer() {
+type Props = {
+    dateTimeSettings: DateTimePreferences
+}
+
+export default function PomodoroTimer({
+    dateTimeSettings,
+}: Props) {
     const [durations, setDurations] = useState<TimerDurations>(() => {
         const saved = localStorage.getItem('pomodoroDurations')
 
@@ -521,6 +528,7 @@ export default function PomodoroTimer() {
             {/* 今日專注紀錄 */}
             <FocusHistory
                 records={todayRecords}
+                dateTimeSettings={dateTimeSettings}
                 onUpdateNote={updateFocusNote}
                 onDelete={deleteFocusRecord}
                 onAdd={addFocusRecord}

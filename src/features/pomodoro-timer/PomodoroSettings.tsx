@@ -322,7 +322,7 @@ export default function PomodoroSettings({
                             className="mx-auto flex cursor-pointer items-center gap-2 rounded-md border border-gray-200 px-4 py-2 text-sm text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
                         >
                             <Play size={14} />
-                            試聽提示音
+                            試聽
                         </button>
                     </>
                 )}

@@ -4,9 +4,12 @@ import { ChevronDown, ChevronUp, X } from 'lucide-react'
 import type { FocusRecord } from './FocusRecord'
 import { calculateTomatoes } from './calculateTomatoes'
 import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
+import { formatTime } from '../../utils/formatTime'
+import type { DateTimePreferences } from '../settings/dateTimePreferences'
 
 type Props = {
     records: FocusRecord[]
+    dateTimeSettings: DateTimePreferences
     onUpdateNote: (id: string, note: string) => void
     onDelete: (id: string) => void
     onAdd: (
@@ -18,6 +21,7 @@ type Props = {
 
 export default function FocusHistory({
     records,
+    dateTimeSettings,
     onUpdateNote,
     onDelete,
     onAdd,
@@ -197,15 +201,8 @@ export default function FocusHistory({
                             className="flex gap-3"
                         >
                             {/* 結算時間 */}
-                            <div className="w-11 shrink-0 pt-1 text-sm text-gray-400 tabular-nums">
-                                {new Date(record.completedAt).toLocaleTimeString(
-                                    'zh-TW',
-                                    {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                        hour12: false,
-                                    }
-                                )}
+                            <div className="w-24 shrink-0 pt-1 text-sm text-gray-400 tabular-nums">
+                                {formatTime(record.completedAt, dateTimeSettings)}
                             </div>
 
                             {/* 時間軸 */}

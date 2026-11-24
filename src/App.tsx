@@ -5,6 +5,11 @@ import KanbanBoard from './features/kanban/KanbanBoard'
 import DailyChecklist from './features/daily-checklist/DailyChecklist'
 import Settings from './features/settings/Settings'
 import PomodoroTimer from './features/pomodoro-timer/PomodoroTimer'
+import { formatDateTime } from './utils/formatTime'
+import {
+  DATE_TIME_SETTINGS_KEY,
+  getDateTimeSettings,
+} from './features/settings/dateTimePreferences'
 
 function App() {
   // useState：管理 React 狀態，狀態改變時會重新渲染畫面。
@@ -24,6 +29,11 @@ function App() {
 
   // new Date()：取得目前日期時間。
   const [now, setNow] = useState(() => new Date())
+
+  // 讀取已儲存的日期與時間設定。
+  const [dateTimeSettings, setDateTimeSettings] = useState(
+    getDateTimeSettings
+  )
 
   // 工作區內部頁籤：工作代辦／自由便籤。
   // 讀取上次選擇的工作區頁籤；沒有紀錄時預設工作代辦。
@@ -58,6 +68,14 @@ function App() {
     return () => window.clearInterval(timer)
   }, [])
 
+  // 自動儲存日期與時間設定。
+  useEffect(() => {
+    localStorage.setItem(
+      DATE_TIME_SETTINGS_KEY,
+      JSON.stringify(dateTimeSettings)
+    )
+  }, [dateTimeSettings])
+
   return (
     <div className="min-h-screen bg-white text-gray-800">
       {/* 頂部導覽列 */}
@@ -82,16 +100,12 @@ function App() {
           </div>
         )}
 
-        {/* toLocaleString：依指定語系與格式顯示日期時間。 */}
-        <span className="ml-auto shrink-0 text-sm text-gray-500">
-          {now.toLocaleString('zh-TW', {
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false,
-          })}
-        </span>
+        {/* 根據全域設定顯示右上角日期時間。 */}
+        {dateTimeSettings.visible && (
+          <span className="ml-auto shrink-0 text-sm text-gray-500 tabular-nums">
+            {formatDateTime(now.getTime(), dateTimeSettings)}
+          </span>
+        )}
       </nav>
 
       <main className="p-6">
@@ -132,7 +146,10 @@ function App() {
             )}
           </div>
         ) : page === '設定' ? (
-          <Settings />
+          <Settings
+            dateTimeSettings={dateTimeSettings}
+            onDateTimeSettingsChange={setDateTimeSettings}
+          />
         ) : page === '寬鬆番茄鐘' ? (
           null
         ) : (
@@ -140,7 +157,7 @@ function App() {
         )}
         {/* 番茄鐘持續掛載，切換頁面時僅隱藏畫面。 */}
         <div className={page === '寬鬆番茄鐘' ? '' : 'hidden'}>
-          <PomodoroTimer />
+          <PomodoroTimer dateTimeSettings={dateTimeSettings} />
         </div>
       </main>
     </div>
