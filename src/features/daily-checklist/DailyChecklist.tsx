@@ -184,6 +184,7 @@ export default function DailyChecklist() {
                                 className={`flex items-center gap-3 rounded ${draggedItemId === item.id ? 'opacity-50' : ''
                                     }`}
                             >
+                                
                                 <input
                                     type="checkbox"
                                     checked={item.checked}
