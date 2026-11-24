@@ -1,6 +1,7 @@
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { RotateCcw, SkipForward, Settings } from 'lucide-react'
+import PomodoroSettings from './PomodoroSettings'
 
 type TimerMode = 'focus' | 'shortBreak' | 'longBreak'
 
@@ -11,34 +12,72 @@ const modes = [
     { id: 'longBreak', label: '長休息' },
 ] as const
 
+// 三種模式的時間設定型別。
+type TimerDurations = Record<TimerMode, number>
+
 // 預設計時時間（秒）。
-const durations = {
+const defaultDurations: TimerDurations = {
     focus: 25 * 60,
     shortBreak: 5 * 60,
     longBreak: 15 * 60,
 }
 
 export default function PomodoroTimer() {
+    const [durations, setDurations] = useState<TimerDurations>(() => {
+        const saved = localStorage.getItem('pomodoroDurations')
+
+        return saved ? JSON.parse(saved) : defaultDurations
+    })
+
     const [mode, setMode] = useState<TimerMode>('focus')
     const [remainingSeconds, setRemainingSeconds] = useState(durations.focus)
     const [isRunning, setIsRunning] = useState(false)
+    // 記錄預計結束計時的時間戳記。
+    const [endTime, setEndTime] = useState<number | null>(null)
     // 記錄目前階段是否曾經開始計時。
     const [hasStarted, setHasStarted] = useState(false)
     // 記錄目前循環已經歷的專注階段數量。
     const [focusCount, setFocusCount] = useState(0)
+    // 記錄設定選單是否展開。
+    
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+    // 自動儲存時間設定。
+    useEffect(() => {
+        localStorage.setItem(
+            'pomodoroDurations',
+            JSON.stringify(durations)
+        )
+    }, [durations])
 
     // 切換計時模式。
-    const changeMode = (nextMode: TimerMode) => {
+    const changeMode = useCallback((nextMode: TimerMode) => {
         if (nextMode === mode) return
 
+        setIsSettingsOpen(false)
         setIsRunning(false)
+        setEndTime(null)
         setHasStarted(false)
         setMode(nextMode)
         setRemainingSeconds(durations[nextMode])
+    }, [mode, durations])
+
+    // 更新三種模式的時間設定。
+    const updateDurations = (nextDurations: TimerDurations) => {
+        setDurations(nextDurations)
+        setRemainingSeconds(nextDurations[mode])
+    }
+
+    // 重置目前模式的計時器。
+    const resetTimer = () => {
+        setIsSettingsOpen(false)
+        setIsRunning(false)
+        setEndTime(null)
+        setHasStarted(false)
+        setRemainingSeconds(durations[mode])
     }
 
     // 依照番茄鐘循環進入下一階段。
-    const nextPhase = () => {
+    const nextPhase = useCallback(() => {
         if (mode === 'focus') {
             const nextCount = focusCount + 1
 
@@ -54,34 +93,49 @@ export default function PomodoroTimer() {
 
             changeMode('focus')
         }
-    }
+    }, [mode, focusCount, changeMode])
 
-    // 倒數計時，結束後進入下一階段。
+    // 根據結束時間戳記計算剩餘時間。
     useEffect(() => {
-        if (!isRunning) return
+        if (!isRunning || endTime === null) return
 
-        const timer = window.setTimeout(() => {
-            if (remainingSeconds <= 1) {
+        const timer = window.setInterval(() => {
+            const remaining = Math.max(
+                0,
+                Math.ceil((endTime - Date.now()) / 1000)
+            )
+
+            if (remaining === 0) {
+                window.clearInterval(timer)
                 nextPhase()
             } else {
-                setRemainingSeconds(prev => prev - 1)
+                setRemainingSeconds(remaining)
             }
-        }, 1000)
+        }, 100)
 
-        return () => window.clearTimeout(timer)
-    }, [isRunning, remainingSeconds, nextPhase])
-
-    // 重置目前模式的計時器。
-    const resetTimer = () => {
-        setIsRunning(false)
-        setHasStarted(false)
-        setRemainingSeconds(durations[mode])
-    }
+        return () => window.clearInterval(timer)
+    }, [isRunning, endTime, nextPhase])
 
     // 開始、暫停或繼續計時。
     const toggleTimer = () => {
+        setIsSettingsOpen(false)
         setHasStarted(true)
-        setIsRunning(prev => !prev)
+
+        if (isRunning) {
+            // 暫停計時。
+            if (endTime !== null) {
+                setRemainingSeconds(
+                    Math.max(0, Math.ceil((endTime - Date.now()) / 1000))
+                )
+            }
+
+            setIsRunning(false)
+            setEndTime(null)
+        } else {
+            // 開始或繼續計時。
+            setEndTime(Date.now() + remainingSeconds * 1000)
+            setIsRunning(true)
+        }
     }
 
     // 轉換成 MM:SS 格式。
@@ -125,6 +179,7 @@ export default function PomodoroTimer() {
 
                 <button
                     type="button"
+                    onClick={() => setIsSettingsOpen(prev => !prev)}
                     aria-label="計時設定"
                     title="計時設定"
                     className={`absolute left-full ml-1 flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-800 sm:ml-3 ${hasStarted ? 'invisible' : ''
@@ -174,6 +229,13 @@ export default function PomodoroTimer() {
                     <SkipForward size={22} />
                 </button>
             </div>
+            {/* 設定選單 */}
+            {isSettingsOpen && (
+                <PomodoroSettings
+                    durations={durations}
+                    onChange={updateDurations}
+                />
+            )}
         </div>
     )
 }
