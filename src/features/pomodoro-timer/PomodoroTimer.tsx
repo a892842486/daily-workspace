@@ -15,6 +15,16 @@ const modes = [
 // 三種模式的時間設定型別。
 type TimerDurations = Record<TimerMode, number>
 
+// 番茄鐘的計時狀態型別。
+type TimerState = {
+    mode: TimerMode
+    remainingSeconds: number
+    isRunning: boolean
+    endTime: number | null
+    hasStarted: boolean
+    focusCount: number
+}
+
 // 預設計時時間（秒）。
 const defaultDurations: TimerDurations = {
     focus: 25 * 60,
@@ -29,17 +39,48 @@ export default function PomodoroTimer() {
         return saved ? JSON.parse(saved) : defaultDurations
     })
 
-    const [mode, setMode] = useState<TimerMode>('focus')
-    const [remainingSeconds, setRemainingSeconds] = useState(durations.focus)
-    const [isRunning, setIsRunning] = useState(false)
+    // 讀取上一次的計時狀態。
+    const [savedState] = useState<TimerState | null>(() => {
+        const saved = localStorage.getItem('pomodoroTimerState')
+
+        return saved ? JSON.parse(saved) : null
+    })
+
+    const [mode, setMode] = useState<TimerMode>(
+        savedState?.mode ?? 'focus'
+    )
+
+    const [remainingSeconds, setRemainingSeconds] = useState(() => {
+        if (savedState?.isRunning && savedState.endTime !== null) {
+            return Math.max(
+                0,
+                Math.ceil((savedState.endTime - Date.now()) / 1000)
+            )
+        }
+
+        return savedState?.remainingSeconds ?? durations.focus
+    })
+
+    const [isRunning, setIsRunning] = useState(
+        savedState?.isRunning ?? false
+    )
+
     // 記錄預計結束計時的時間戳記。
-    const [endTime, setEndTime] = useState<number | null>(null)
+    const [endTime, setEndTime] = useState<number | null>(
+        savedState?.endTime ?? null
+    )
+
     // 記錄目前階段是否曾經開始計時。
-    const [hasStarted, setHasStarted] = useState(false)
+    const [hasStarted, setHasStarted] = useState(
+        savedState?.hasStarted ?? false
+    )
+
     // 記錄目前循環已經歷的專注階段數量。
-    const [focusCount, setFocusCount] = useState(0)
+    const [focusCount, setFocusCount] = useState(
+        savedState?.focusCount ?? 0
+    )
     // 記錄設定選單是否展開。
-    
+
     const [isSettingsOpen, setIsSettingsOpen] = useState(false)
     // 自動儲存時間設定。
     useEffect(() => {
@@ -48,6 +89,30 @@ export default function PomodoroTimer() {
             JSON.stringify(durations)
         )
     }, [durations])
+
+    // 自動儲存計時狀態。
+    useEffect(() => {
+        const state: TimerState = {
+            mode,
+            remainingSeconds,
+            isRunning,
+            endTime,
+            hasStarted,
+            focusCount,
+        }
+
+        localStorage.setItem(
+            'pomodoroTimerState',
+            JSON.stringify(state)
+        )
+    }, [
+        mode,
+        remainingSeconds,
+        isRunning,
+        endTime,
+        hasStarted,
+        focusCount,
+    ])
 
     // 切換計時模式。
     const changeMode = useCallback((nextMode: TimerMode) => {
@@ -161,9 +226,10 @@ export default function PomodoroTimer() {
                     <button
                         key={item.id}
                         onClick={() => changeMode(item.id)}
-                        className={`cursor-pointer border-b-2 px-2 py-2 transition-colors ${mode === item.id
+                        disabled={hasStarted}
+                        className={`cursor-pointer border-b-2 px-2 py-2 transition-colors disabled:cursor-default ${mode === item.id
                             ? 'border-gray-800 font-semibold text-gray-800'
-                            : 'border-transparent text-gray-400 hover:text-gray-600'
+                            : 'border-transparent text-gray-400 enabled:hover:text-gray-600'
                             }`}
                     >
                         {item.label}

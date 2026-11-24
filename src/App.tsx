@@ -134,10 +134,14 @@ function App() {
         ) : page === '設定' ? (
           <Settings />
         ) : page === '寬鬆番茄鐘' ? (
-          <PomodoroTimer />
+          null
         ) : (
           <h1 className="text-2xl font-bold">{page}</h1>
         )}
+        {/* 番茄鐘持續掛載，切換頁面時僅隱藏畫面。 */}
+        <div className={page === '寬鬆番茄鐘' ? '' : 'hidden'}>
+          <PomodoroTimer />
+        </div>
       </main>
     </div>
   )
