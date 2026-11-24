@@ -10,6 +10,8 @@ import {
   DATE_TIME_SETTINGS_KEY,
   getDateTimeSettings,
 } from './features/settings/dateTimePreferences'
+import Calendar from './features/calendar/Calendar'
+import { useFocusRecords } from './features/pomodoro-timer/useFocusRecords'
 
 function App() {
   // useState：管理 React 狀態，狀態改變時會重新渲染畫面。
@@ -40,6 +42,13 @@ function App() {
   const [workspaceTab, setWorkspaceTab] = useState(() => {
     return localStorage.getItem('workspaceTab') || '工作代辦'
   })
+
+  const {
+    focusRecords,
+    addFocusRecord,
+    updateFocusNote,
+    deleteFocusRecord,
+  } = useFocusRecords()
 
   // useEffect：處理 React 渲染後需要執行的副作用。
   // [page]：當 page 改變時，將最新頁面儲存到 localStorage。
@@ -150,6 +159,8 @@ function App() {
             dateTimeSettings={dateTimeSettings}
             onDateTimeSettingsChange={setDateTimeSettings}
           />
+        ) : page === '日曆' ? (
+          <Calendar focusRecords={focusRecords} />
         ) : page === '寬鬆番茄鐘' ? (
           null
         ) : (
@@ -157,7 +168,13 @@ function App() {
         )}
         {/* 番茄鐘持續掛載，切換頁面時僅隱藏畫面。 */}
         <div className={page === '寬鬆番茄鐘' ? '' : 'hidden'}>
-          <PomodoroTimer dateTimeSettings={dateTimeSettings} />
+          <PomodoroTimer
+            dateTimeSettings={dateTimeSettings}
+            focusRecords={focusRecords}
+            addFocusRecord={addFocusRecord}
+            updateFocusNote={updateFocusNote}
+            deleteFocusRecord={deleteFocusRecord}
+          />
         </div>
       </main>
     </div>

@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { RotateCcw, SkipForward, Settings } from 'lucide-react'
 import PomodoroSettings from './PomodoroSettings'
 import FocusHistory from './FocusHistory'
-import { calculateTomatoes } from './calculateTomatoes'
 import type { FocusRecord } from './FocusRecord'
 import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
 import { initializeTimerAudio, playTimerSound } from './playTimerSound'
@@ -41,10 +40,22 @@ const defaultDurations: TimerDurations = {
 
 type Props = {
     dateTimeSettings: DateTimePreferences
+    focusRecords: FocusRecord[]
+    addFocusRecord: (
+        completedAt: number,
+        elapsedSeconds: number,
+        note?: string
+    ) => void
+    updateFocusNote: (id: string, note: string) => void
+    deleteFocusRecord: (id: string) => void
 }
 
 export default function PomodoroTimer({
     dateTimeSettings,
+    focusRecords,
+    addFocusRecord,
+    updateFocusNote,
+    deleteFocusRecord,
 }: Props) {
     const [durations, setDurations] = useState<TimerDurations>(() => {
         const saved = localStorage.getItem('pomodoroDurations')
@@ -124,21 +135,6 @@ export default function PomodoroTimer({
         return () => window.clearInterval(timer)
     }, [])
 
-    // 讀取已儲存的專注紀錄。
-    const [focusRecords, setFocusRecords] = useState<FocusRecord[]>(() => {
-        const saved = localStorage.getItem('pomodoroFocusRecords')
-
-        return saved ? JSON.parse(saved) : []
-    })
-
-    // 自動儲存專注紀錄。
-    useEffect(() => {
-        localStorage.setItem(
-            'pomodoroFocusRecords',
-            JSON.stringify(focusRecords)
-        )
-    }, [focusRecords])
-
     // 自動儲存提示音設定。
     useEffect(() => {
         localStorage.setItem(
@@ -205,42 +201,7 @@ export default function PomodoroTimer({
         setRemainingSeconds(nextDurations[mode])
     }
 
-    // 手動補登專注紀錄。
-    const addFocusRecord = (
-        completedAt: number,
-        elapsedSeconds: number,
-        note: string
-    ) => {
-        const record: FocusRecord = {
-            id: crypto.randomUUID(),
-            completedAt,
-            elapsedSeconds,
-            tomatoes: calculateTomatoes(elapsedSeconds),
-            note,
-        }
-
-        setFocusRecords(prev => [...prev, record])
-    }
-
-    // 更新指定紀錄的專注內容。
-    const updateFocusNote = (id: string, note: string) => {
-        setFocusRecords(prev =>
-            prev.map(record =>
-                record.id === id ? { ...record, note } : record
-            )
-        )
-    }
-
-    // 刪除指定的專注紀錄。
-    const deleteFocusRecord = (id: string) => {
-        if (!window.confirm('確定刪除此筆專注紀錄？')) return
-
-        setFocusRecords(prev =>
-            prev.filter(record => record.id !== id)
-        )
-    }
-
-    // 結算本次實際專注成果。
+    // 結算本次專注時間。
     const settleFocus = useCallback(() => {
         if (mode !== 'focus' || !hasStarted) return
 
@@ -255,14 +216,7 @@ export default function PomodoroTimer({
 
         if (elapsedSeconds === 0) return
 
-        const record: FocusRecord = {
-            id: crypto.randomUUID(),
-            elapsedSeconds,
-            tomatoes: calculateTomatoes(elapsedSeconds),
-            completedAt: Date.now(),
-        }
-
-        setFocusRecords(prev => [...prev, record])
+        addFocusRecord(Date.now(), elapsedSeconds)
     }, [
         mode,
         hasStarted,
@@ -270,6 +224,7 @@ export default function PomodoroTimer({
         endTime,
         remainingSeconds,
         durations.focus,
+        addFocusRecord,
     ])
 
     // 重置目前模式的計時器。
