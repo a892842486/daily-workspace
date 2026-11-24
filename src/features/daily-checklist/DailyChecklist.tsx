@@ -1,32 +1,12 @@
 
 import { useEffect, useState } from 'react'
 import AddButton from '../../components/AddButton'
-import { RESET_HOUR_KEY } from '../settings/Settings'
+import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
 
 type ChecklistItem = {
     id: string
     title: string
     checked: boolean
-}
-
-// 預設凌晨 04:00 重置，可由設定頁面修改。
-function getResetHour() {
-    return Number(localStorage.getItem(RESET_HOUR_KEY) ?? 4)
-}
-
-// 取得目前所屬的「打卡日」。
-function getChecklistDate() {
-    const date = new Date()
-
-    if (date.getHours() < getResetHour()) {
-        date.setDate(date.getDate() - 1)
-    }
-
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-
-    return `${year}-${month}-${day}`
 }
 
 export default function DailyChecklist() {
@@ -41,7 +21,7 @@ export default function DailyChecklist() {
     const [checklistData, setChecklistData] = useState(() => {
         const savedItems = localStorage.getItem('dailyChecklistItems')
         const savedDate = localStorage.getItem('dailyChecklistDate')
-        const today = getChecklistDate()
+        const today = getWorkspaceDate()
 
         const items = savedItems
             ? JSON.parse(savedItems) as ChecklistItem[]
@@ -69,7 +49,7 @@ export default function DailyChecklist() {
     // 每次進入新的打卡日，清空勾選狀態。
     useEffect(() => {
         const checkReset = () => {
-            const today = getChecklistDate()
+            const today = getWorkspaceDate()
 
             setChecklistData(prev => {
                 if (prev.date === today) return prev
