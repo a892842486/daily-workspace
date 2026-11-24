@@ -160,7 +160,13 @@ function App() {
             onDateTimeSettingsChange={setDateTimeSettings}
           />
         ) : page === '日曆' ? (
-          <Calendar focusRecords={focusRecords} />
+          <Calendar
+            focusRecords={focusRecords}
+            dateTimeSettings={dateTimeSettings}
+            updateFocusNote={updateFocusNote}
+            deleteFocusRecord={deleteFocusRecord}
+            addFocusRecord={addFocusRecord}
+          />
         ) : page === '寬鬆番茄鐘' ? (
           null
         ) : (

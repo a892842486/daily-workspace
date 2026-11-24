@@ -3,6 +3,8 @@ import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
 import type { FocusRecord } from '../pomodoro-timer/FocusRecord'
+import FocusHistory from '../pomodoro-timer/FocusHistory'
+import type { DateTimePreferences } from '../settings/dateTimePreferences'
 
 // 將日期轉換成 YYYY-MM-DD。
 function getDateKey(date: Date) {
@@ -17,9 +19,23 @@ const weekdays = ['一', '二', '三', '四', '五', '六', '日']
 
 type Props = {
     focusRecords: FocusRecord[]
+    dateTimeSettings: DateTimePreferences
+    updateFocusNote: (id: string, note: string) => void
+    deleteFocusRecord: (id: string) => void
+    addFocusRecord: (
+        completedAt: number,
+        elapsedSeconds: number,
+        note?: string
+    ) => void
 }
 
-export default function Calendar({ focusRecords }: Props) {
+export default function Calendar({
+    focusRecords,
+    dateTimeSettings,
+    updateFocusNote,
+    deleteFocusRecord,
+    addFocusRecord,
+}: Props) {
     // 使用工作區日期作為今天。
     const today = getWorkspaceDate()
 
@@ -30,6 +46,26 @@ export default function Calendar({ focusRecords }: Props) {
 
     // 記錄目前選取的日期。
     const [selectedDate, setSelectedDate] = useState(today)
+
+    // 取得選取日期的專注紀錄。
+    const selectedRecords = focusRecords.filter(record =>
+        getWorkspaceDate(record.completedAt) === selectedDate
+    )
+
+    // 計算選取日期的番茄數量。
+    const selectedTomatoes = selectedRecords.reduce(
+        (total, record) => total + record.tomatoes,
+        0
+    )
+
+    // 計算選取日期的專注總時間。
+    const selectedFocusSeconds = selectedRecords.reduce(
+        (total, record) => total + record.elapsedSeconds,
+        0
+    )
+
+    const selectedFocusHours = Math.floor(selectedFocusSeconds / 3600)
+    const selectedFocusMinutes = Math.floor((selectedFocusSeconds % 3600) / 60)
 
     const year = currentMonth.getFullYear()
     const month = currentMonth.getMonth()
@@ -208,14 +244,33 @@ export default function Calendar({ focusRecords }: Props) {
 
             {/* 選取日期的詳細成果 */}
             <div className="rounded-lg border border-gray-200 p-4">
-                <h2 className="font-semibold">
-                    {selectedDate.replaceAll('-', '/')}
-                </h2>
+                <div className="flex items-center justify-between gap-3">
+                    <h2 className="font-semibold tabular-nums">
+                        {selectedDate.replaceAll('-', '/')}
+                    </h2>
 
-                <p className="py-8 text-center text-sm text-gray-400">
-                    每日專注成果將顯示於此
-                </p>
+                    <div className="flex items-center gap-4 tabular-nums">
+                        <span className="font-medium">
+                            🍅 {selectedTomatoes}
+                        </span>
+
+                        <span className="text-sm text-gray-500">
+                            {selectedFocusHours}h {selectedFocusMinutes}m
+                        </span>
+                    </div>
+                </div>
             </div>
+            {/* 時間軸 */}
+            <FocusHistory
+                key={selectedDate}
+                records={selectedRecords}
+                dateTimeSettings={dateTimeSettings}
+                onUpdateNote={updateFocusNote}
+                onDelete={deleteFocusRecord}
+                onAdd={addFocusRecord}
+                workspaceDate={selectedDate}
+                defaultOpen={true}
+            />
         </section>
     )
 }

@@ -8,6 +8,8 @@ import { formatTime } from '../../utils/formatTime'
 import type { DateTimePreferences } from '../settings/dateTimePreferences'
 
 type Props = {
+    workspaceDate?: string
+    defaultOpen?: boolean
     records: FocusRecord[]
     dateTimeSettings: DateTimePreferences
     onUpdateNote: (id: string, note: string) => void
@@ -20,6 +22,8 @@ type Props = {
 }
 
 export default function FocusHistory({
+    workspaceDate = getWorkspaceDate(),
+    defaultOpen = false,
     records,
     dateTimeSettings,
     onUpdateNote,
@@ -27,7 +31,7 @@ export default function FocusHistory({
     onAdd,
 }: Props) {
     // 控制專注紀錄是否展開。
-    const [isOpen, setIsOpen] = useState(false)
+    const [isOpen, setIsOpen] = useState(defaultOpen)
     // 補登專注紀錄的表單狀態。
     const [isAdding, setIsAdding] = useState(false)
     const [manualTime, setManualTime] = useState('')
@@ -52,15 +56,11 @@ export default function FocusHistory({
 
         const [hours, mins] = manualTime.split(':').map(Number)
 
-        const date = new Date()
+        const date = new Date(`${workspaceDate}T00:00:00`)
         date.setHours(hours, mins, 0, 0)
 
-        // 確保補登時間屬於目前的工作區日期。
-        if (getWorkspaceDate(date.getTime()) !== getWorkspaceDate()) {
-            date.setDate(
-                date.getDate() +
-                (getWorkspaceDate(date.getTime()) < getWorkspaceDate() ? 1 : -1)
-            )
+        if (getWorkspaceDate(date.getTime()) < workspaceDate) {
+            date.setDate(date.getDate() + 1)
         }
 
         if (date.getTime() > Date.now()) {
@@ -91,7 +91,9 @@ export default function FocusHistory({
                 className="flex w-full cursor-pointer items-center justify-between px-4 py-3"
             >
                 <span className="font-medium">
-                    今日專注紀錄
+                    {workspaceDate === getWorkspaceDate()
+                        ? '今日專注紀錄'
+                        : '專注紀錄'}
                     <span className="ml-2 text-sm font-normal text-gray-400">
                         {records.length} 筆
                     </span>
