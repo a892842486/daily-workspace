@@ -18,6 +18,9 @@ export default function FreeNotes() {
   // 記錄目前正在拖曳的便籤 ID。
   const [draggedNoteId, setDraggedNoteId] = useState<string | null>(null)
 
+  // 記錄拖曳經過的目標便籤。
+  const [dragOverNoteId, setDragOverNoteId] = useState<string | null>(null)
+
   // 當 notes 改變時，自動儲存所有便籤。
   useEffect(() => {
     localStorage.setItem('notes', JSON.stringify(notes))
@@ -71,10 +74,10 @@ export default function FreeNotes() {
 
       if (fromIndex === -1 || toIndex === -1) return prev
 
-      ;[newNotes[fromIndex], newNotes[toIndex]] = [
-        newNotes[toIndex],
-        newNotes[fromIndex],
-      ]
+        ;[newNotes[fromIndex], newNotes[toIndex]] = [
+          newNotes[toIndex],
+          newNotes[fromIndex],
+        ]
 
       return newNotes
     })
@@ -92,9 +95,22 @@ export default function FreeNotes() {
           <NoteCard
             key={note.id}
             note={note}
+            isDragOver={dragOverNoteId === note.id}
             onDragStart={setDraggedNoteId}
-            onDrop={swapNotes}
-            onDragEnd={() => setDraggedNoteId(null)}
+            onDragOver={id => {
+              if (draggedNoteId && draggedNoteId !== id) {
+                setDragOverNoteId(id)
+              }
+            }}
+            onDragLeave={() => setDragOverNoteId(null)}
+            onDrop={id => {
+              swapNotes(id)
+              setDragOverNoteId(null)
+            }}
+            onDragEnd={() => {
+              setDraggedNoteId(null)
+              setDragOverNoteId(null)
+            }}
             onSizeChange={updateNoteSize}
             onDelete={deleteNote}
             onContentChange={updateNote}
