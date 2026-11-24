@@ -5,4 +5,5 @@ export type FocusRecord = {
     elapsedSeconds: number
     tomatoes: number
     completedAt: number
+    note?: string
 }

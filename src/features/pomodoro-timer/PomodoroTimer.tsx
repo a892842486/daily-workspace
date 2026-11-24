@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { RotateCcw, SkipForward, Settings } from 'lucide-react'
 import PomodoroSettings from './PomodoroSettings'
+import FocusHistory from './FocusHistory'
 import { calculateTomatoes } from './calculateTomatoes'
 import type { FocusRecord } from './FocusRecord'
 import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
@@ -159,6 +160,41 @@ export default function PomodoroTimer() {
     const updateDurations = (nextDurations: TimerDurations) => {
         setDurations(nextDurations)
         setRemainingSeconds(nextDurations[mode])
+    }
+
+    // 手動補登專注紀錄。
+    const addFocusRecord = (
+        completedAt: number,
+        elapsedSeconds: number,
+        note: string
+    ) => {
+        const record: FocusRecord = {
+            id: crypto.randomUUID(),
+            completedAt,
+            elapsedSeconds,
+            tomatoes: calculateTomatoes(elapsedSeconds),
+            note,
+        }
+
+        setFocusRecords(prev => [...prev, record])
+    }
+
+    // 更新指定紀錄的專注內容。
+    const updateFocusNote = (id: string, note: string) => {
+        setFocusRecords(prev =>
+            prev.map(record =>
+                record.id === id ? { ...record, note } : record
+            )
+        )
+    }
+
+    // 刪除指定的專注紀錄。
+    const deleteFocusRecord = (id: string) => {
+        if (!window.confirm('確定刪除此筆專注紀錄？')) return
+
+        setFocusRecords(prev =>
+            prev.filter(record => record.id !== id)
+        )
     }
 
     // 結算本次實際專注成果。
@@ -404,6 +440,13 @@ export default function PomodoroTimer() {
                     累計專注 {todayFocusHours} 小時 {todayFocusMinutes} 分鐘
                 </div>
             </div>
+            {/* 今日專注紀錄 */}
+            <FocusHistory
+                records={todayRecords}
+                onUpdateNote={updateFocusNote}
+                onDelete={deleteFocusRecord}
+                onAdd={addFocusRecord}
+            />
         </div>
     )
 }
