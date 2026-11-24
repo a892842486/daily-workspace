@@ -1,32 +1,12 @@
 
 import { useEffect, useState } from 'react'
 import AddButton from '../../components/AddButton'
-import { RESET_HOUR_KEY } from '../settings/Settings'
+import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
 
 type ChecklistItem = {
     id: string
     title: string
     checked: boolean
-}
-
-// 預設凌晨 04:00 重置，可由設定頁面修改。
-function getResetHour() {
-    return Number(localStorage.getItem(RESET_HOUR_KEY) ?? 4)
-}
-
-// 取得目前所屬的「打卡日」。
-function getChecklistDate() {
-    const date = new Date()
-
-    if (date.getHours() < getResetHour()) {
-        date.setDate(date.getDate() - 1)
-    }
-
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const day = String(date.getDate()).padStart(2, '0')
-
-    return `${year}-${month}-${day}`
 }
 
 export default function DailyChecklist() {
@@ -35,10 +15,13 @@ export default function DailyChecklist() {
     // 記錄目前正在拖曳的項目。
     const [draggedItemId, setDraggedItemId] = useState<string | null>(null)
 
+    // 記錄拖曳經過的目標項目，用於顯示藍色提示。
+    const [dragOverItemId, setDragOverItemId] = useState<string | null>(null)
+
     const [checklistData, setChecklistData] = useState(() => {
         const savedItems = localStorage.getItem('dailyChecklistItems')
         const savedDate = localStorage.getItem('dailyChecklistDate')
-        const today = getChecklistDate()
+        const today = getWorkspaceDate()
 
         const items = savedItems
             ? JSON.parse(savedItems) as ChecklistItem[]
@@ -66,7 +49,7 @@ export default function DailyChecklist() {
     // 每次進入新的打卡日，清空勾選狀態。
     useEffect(() => {
         const checkReset = () => {
-            const today = getChecklistDate()
+            const today = getWorkspaceDate()
 
             setChecklistData(prev => {
                 if (prev.date === today) return prev
@@ -172,18 +155,34 @@ export default function DailyChecklist() {
                                     e.dataTransfer.setData('text/plain', item.id)
                                     e.dataTransfer.effectAllowed = 'move'
                                 }}
-                                onDragEnd={() => setDraggedItemId(null)}
-                                onDragOver={e => e.preventDefault()}
+                                onDragEnd={() => {
+                                    setDraggedItemId(null)
+                                    setDragOverItemId(null)
+                                }}
+                                onDragOver={e => {
+                                    e.preventDefault()
+
+                                    if (draggedItemId && draggedItemId !== item.id) {
+                                        setDragOverItemId(item.id)
+                                    }
+                                }}
+                                onDragLeave={e => {
+                                    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+                                        setDragOverItemId(null)
+                                    }
+                                }}
                                 onDrop={e => {
                                     e.preventDefault()
 
                                     const draggedId = e.dataTransfer.getData('text/plain')
                                     moveItem(draggedId, item.id)
                                     setDraggedItemId(null)
+                                    setDragOverItemId(null)
                                 }}
                                 className={`flex items-center gap-3 rounded ${draggedItemId === item.id ? 'opacity-50' : ''
                                     }`}
                             >
+
                                 <input
                                     type="checkbox"
                                     checked={item.checked}
@@ -191,13 +190,18 @@ export default function DailyChecklist() {
                                     className="h-4 w-4 cursor-pointer"
                                 />
 
-                                <div className="flex min-w-0 flex-1 items-center gap-3 rounded border border-gray-200 px-3 focus-within:border-gray-400">
+                                <div
+                                    className={`flex min-w-0 flex-1 items-center gap-3 rounded border px-3 transition-colors ${dragOverItemId === item.id
+                                        ? 'border-blue-500 bg-blue-50'
+                                        : 'border-gray-200 bg-white focus-within:border-gray-400'
+                                        }`}
+                                >
                                     <input
                                         type="text"
                                         value={item.title}
                                         onChange={e => updateItem(item.id, e.target.value)}
-                                        placeholder="輸入打卡項目"
-                                        className={`min-w-0 flex-1 py-2 outline-none ${item.checked ? 'text-gray-400 line-through' : ''
+                                        placeholder=""
+                                        className={`min-w-0 flex-1 bg-transparent py-2 outline-none ${item.checked ? 'text-gray-400 line-through' : ''
                                             }`}
                                     />
 

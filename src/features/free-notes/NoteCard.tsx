@@ -10,7 +10,10 @@ export type Note = {
 
 type NoteCardProps = {
   note: Note
+  isDragOver: boolean
   onDragStart: (id: string) => void
+  onDragOver: (id: string) => void
+  onDragLeave: () => void
   onDrop: (id: string) => void
   onDragEnd: () => void
   onSizeChange: (id: string, size: Note['size']) => void
@@ -20,7 +23,10 @@ type NoteCardProps = {
 
 export default function NoteCard({
   note,
+  isDragOver,
   onDragStart,
+  onDragOver,
+  onDragLeave,
   onDrop,
   onDragEnd,
   onSizeChange,
@@ -34,19 +40,29 @@ export default function NoteCard({
         onDragStart(note.id)
         e.dataTransfer.effectAllowed = 'move'
       }}
-      onDragOver={e => e.preventDefault()}
+      onDragOver={e => {
+        e.preventDefault()
+        onDragOver(note.id)
+      }}
+      onDragLeave={e => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+          onDragLeave()
+        }
+      }}
       onDrop={e => {
         e.preventDefault()
         onDrop(note.id)
       }}
       onDragEnd={onDragEnd}
-      className={`relative flex flex-col rounded-lg border border-gray-200 bg-gray-50 p-4 ${
-        note.size === 'large'
+      className={`relative flex flex-col rounded-lg border p-4 transition-colors ${isDragOver
+          ? 'border-blue-500 bg-blue-50'
+          : 'border-gray-200 bg-gray-50'
+        } ${note.size === 'large'
           ? 'min-h-80'
           : note.size === 'medium'
             ? 'min-h-60'
             : 'min-h-40'
-      }`}
+        }`}
     >
       {/* 便籤操作：尺寸選擇與刪除。 */}
       <div className="absolute top-2 right-3 flex items-center gap-2">
