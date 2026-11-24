@@ -4,6 +4,7 @@ import FreeNotes from './features/free-notes/FreeNotes'
 import KanbanBoard from './features/kanban/KanbanBoard'
 import DailyChecklist from './features/daily-checklist/DailyChecklist'
 import Settings from './features/settings/Settings'
+import PomodoroTimer from './features/pomodoro-timer/PomodoroTimer'
 
 function App() {
   // useState：管理 React 狀態，狀態改變時會重新渲染畫面。
@@ -105,8 +106,8 @@ function App() {
               <button
                 onClick={() => setWorkspaceTab('工作代辦')}
                 className={`cursor-pointer pb-2 ${workspaceTab === '工作代辦'
-                    ? 'border-b-2 border-gray-800 font-bold'
-                    : 'text-gray-400'
+                  ? 'border-b-2 border-gray-800 font-bold'
+                  : 'text-gray-400'
                   }`}
               >
                 工作代辦
@@ -115,8 +116,8 @@ function App() {
               <button
                 onClick={() => setWorkspaceTab('自由便籤')}
                 className={`cursor-pointer pb-2 ${workspaceTab === '自由便籤'
-                    ? 'border-b-2 border-gray-800 font-bold'
-                    : 'text-gray-400'
+                  ? 'border-b-2 border-gray-800 font-bold'
+                  : 'text-gray-400'
                   }`}
               >
                 自由便籤
@@ -132,6 +133,8 @@ function App() {
           </div>
         ) : page === '設定' ? (
           <Settings />
+        ) : page === '寬鬆番茄鐘' ? (
+          <PomodoroTimer />
         ) : (
           <h1 className="text-2xl font-bold">{page}</h1>
         )}
