@@ -1,42 +1,51 @@
 
 import { useState } from 'react'
 import { ChevronDown, ChevronUp, X } from 'lucide-react'
-import type { FocusRecord } from './FocusRecord'
+
 import { calculateTomatoes } from './calculateTomatoes'
 import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
 import { formatTime } from '../../utils/formatTime'
+
+import type { FocusRecord } from './FocusRecord'
 import type { DateTimePreferences } from '../settings/dateTimePreferences'
 
 type Props = {
-    workspaceDate?: string
-    defaultOpen?: boolean
     records: FocusRecord[]
     dateTimeSettings: DateTimePreferences
-    onUpdateNote: (id: string, note: string) => void
-    onDelete: (id: string) => void
+    workspaceDate?: string
+    defaultOpen?: boolean
+
     onAdd: (
         completedAt: number,
         elapsedSeconds: number,
         note: string
     ) => void
+    onUpdateNote: (id: string, note: string) => void
+    onDelete: (id: string) => void
 }
 
 export default function FocusHistory({
-    workspaceDate = getWorkspaceDate(),
-    defaultOpen = false,
     records,
     dateTimeSettings,
+    workspaceDate = getWorkspaceDate(),
+    defaultOpen = false,
+    onAdd,
     onUpdateNote,
     onDelete,
-    onAdd,
 }: Props) {
     // 控制專注紀錄是否展開。
     const [isOpen, setIsOpen] = useState(defaultOpen)
+
     // 補登專注紀錄的表單狀態。
     const [isAdding, setIsAdding] = useState(false)
     const [manualTime, setManualTime] = useState('')
     const [manualMinutes, setManualMinutes] = useState('25')
     const [manualNote, setManualNote] = useState('')
+
+    // 依照結算時間由早到晚排列。
+    const sortedRecords = [...records].sort(
+        (a, b) => a.completedAt - b.completedAt
+    )
 
     // 展開補登表單並填入預設值。
     const openAddForm = () => {
@@ -77,11 +86,6 @@ export default function FocusHistory({
         setIsAdding(false)
     }
 
-    // 依照結算時間由早到晚排列。
-    const sortedRecords = [...records].sort(
-        (a, b) => a.completedAt - b.completedAt
-    )
-
     return (
         <div className="w-full max-w-2xl rounded-lg border border-gray-200">
             {/* 展開與收合 */}
@@ -107,7 +111,6 @@ export default function FocusHistory({
             {/* 專注紀錄列表 */}
             {isOpen && (
                 <div className="border-t border-gray-200 px-4 py-4">
-
                     {/* 補登專注紀錄 */}
                     <div className="mb-5">
                         {!isAdding ? (
@@ -191,12 +194,14 @@ export default function FocusHistory({
                         )}
                     </div>
 
+                    {/* 空白狀態 */}
                     {sortedRecords.length === 0 && (
                         <div className="px-4 py-6 text-center text-sm text-gray-400">
                             尚無專注紀錄
                         </div>
                     )}
 
+                    {/* 專注紀錄時間軸 */}
                     {sortedRecords.map((record, index) => (
                         <div
                             key={record.id}

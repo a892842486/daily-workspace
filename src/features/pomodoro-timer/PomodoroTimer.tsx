@@ -1,15 +1,15 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { RotateCcw, SkipForward, Settings } from 'lucide-react'
+
 import PomodoroSettings from './PomodoroSettings'
 import FocusHistory from './FocusHistory'
-import type { FocusRecord } from './FocusRecord'
 import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
 import { initializeTimerAudio, playTimerSound } from './playTimerSound'
+
+import type { FocusRecord } from './FocusRecord'
 import type { TimerSound } from './playTimerSound'
 import type { DateTimePreferences } from '../settings/dateTimePreferences'
-
-type TimerMode = 'focus' | 'shortBreak' | 'longBreak'
 
 // 三種計時模式。
 const modes = [
@@ -17,6 +17,8 @@ const modes = [
     { id: 'shortBreak', label: '短休息' },
     { id: 'longBreak', label: '長休息' },
 ] as const
+
+type TimerMode = 'focus' | 'shortBreak' | 'longBreak'
 
 // 三種模式的時間設定型別。
 type TimerDurations = Record<TimerMode, number>
@@ -39,8 +41,10 @@ const defaultDurations: TimerDurations = {
 }
 
 type Props = {
-    dateTimeSettings: DateTimePreferences
     focusRecords: FocusRecord[]
+    dailyTitles: Record<string, string>
+    dateTimeSettings: DateTimePreferences
+
     addFocusRecord: (
         completedAt: number,
         elapsedSeconds: number,
@@ -48,15 +52,19 @@ type Props = {
     ) => void
     updateFocusNote: (id: string, note: string) => void
     deleteFocusRecord: (id: string) => void
+    updateDailyTitle: (date: string, title: string) => void
 }
 
 export default function PomodoroTimer({
-    dateTimeSettings,
     focusRecords,
+    dailyTitles,
+    dateTimeSettings,
     addFocusRecord,
     updateFocusNote,
     deleteFocusRecord,
+    updateDailyTitle,
 }: Props) {
+    // 讀取已儲存的時間設定。
     const [durations, setDurations] = useState<TimerDurations>(() => {
         const saved = localStorage.getItem('pomodoroDurations')
 
@@ -100,6 +108,7 @@ export default function PomodoroTimer({
     const [focusCount, setFocusCount] = useState(
         savedState?.focusCount ?? 0
     )
+
     // 記錄設定選單是否展開。
     const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
@@ -118,13 +127,55 @@ export default function PomodoroTimer({
         return Number(localStorage.getItem('pomodoroSoundVolume') ?? 50)
     })
 
-    // 記錄本次計時是否已播放結束提示音。
-    const hasPlayedSound = useRef(remainingSeconds <= 0)
-
     // 記錄目前所屬的工作區日期。
     const [workspaceDate, setWorkspaceDate] = useState(
         () => getWorkspaceDate()
     )
+
+    // 記錄本次計時是否已播放結束提示音。
+    const hasPlayedSound = useRef(remainingSeconds <= 0)
+
+    // 判斷目前是否處於超時正計時。
+    const isOvertime = remainingSeconds < 0
+
+    // 取得時間絕對值。
+    const displaySeconds = Math.abs(remainingSeconds)
+
+    // 轉換成 MM:SS 格式。
+    const minutes = String(
+        Math.floor(displaySeconds / 60)
+    ).padStart(2, '0')
+
+    const seconds = String(
+        displaySeconds % 60
+    ).padStart(2, '0')
+
+    // 目前所處的循環階段。
+    const currentRound = Math.min(
+        4,
+        Math.max(1, mode === 'focus' ? focusCount + 1 : focusCount)
+    )
+
+    // 篩選屬於今日的專注紀錄。
+    const todayRecords = focusRecords.filter(record =>
+        getWorkspaceDate(record.completedAt) === workspaceDate
+    )
+
+    // 計算今日番茄總數。
+    const todayTomatoes = todayRecords.reduce(
+        (total, record) => total + record.tomatoes,
+        0
+    )
+
+    // 計算今日累計專注秒數。
+    const todayFocusSeconds = todayRecords.reduce(
+        (total, record) => total + record.elapsedSeconds,
+        0
+    )
+
+    // 將累計專注時間轉換成小時與分鐘。
+    const todayFocusHours = Math.floor(todayFocusSeconds / 3600)
+    const todayFocusMinutes = Math.floor((todayFocusSeconds % 3600) / 60)
 
     // 持續檢查是否進入新的工作區日期。
     useEffect(() => {
@@ -181,6 +232,54 @@ export default function PomodoroTimer({
         endTime,
         hasStarted,
         focusCount,
+    ])
+
+    // 根據結束時間戳記計算倒數與超時時間。
+    useEffect(() => {
+        if (!isRunning || endTime === null) return
+
+        const timer = window.setInterval(() => {
+            const remaining = Math.ceil(
+                (endTime - Date.now()) / 1000
+            )
+
+            setRemainingSeconds(remaining)
+        }, 100)
+
+        return () => window.clearInterval(timer)
+    }, [isRunning, endTime])
+
+    // 倒數歸零時播放提示音，每次計時只觸發一次。
+    useEffect(() => {
+        if (!hasStarted) {
+            hasPlayedSound.current = false
+            return
+        }
+
+        if (
+            !isRunning ||
+            remainingSeconds > 0 ||
+            hasPlayedSound.current
+        ) {
+            return
+        }
+
+        hasPlayedSound.current = true
+
+        if (soundEnabled) {
+            void playTimerSound(
+                timerSound,
+                soundVolume,
+                3
+            ).catch(console.warn)
+        }
+    }, [
+        hasStarted,
+        isRunning,
+        remainingSeconds,
+        soundEnabled,
+        timerSound,
+        soundVolume,
     ])
 
     // 切換計時模式。
@@ -259,21 +358,6 @@ export default function PomodoroTimer({
         }
     }, [mode, focusCount, changeMode, settleFocus])
 
-    // 根據結束時間戳記計算倒數與超時時間。
-    useEffect(() => {
-        if (!isRunning || endTime === null) return
-
-        const timer = window.setInterval(() => {
-            const remaining = Math.ceil(
-                (endTime - Date.now()) / 1000
-            )
-
-            setRemainingSeconds(remaining)
-        }, 100)
-
-        return () => window.clearInterval(timer)
-    }, [isRunning, endTime])
-
     // 開始、暫停或繼續計時。
     const toggleTimer = () => {
         // 透過使用者操作解除瀏覽器的音訊播放限制。
@@ -299,82 +383,6 @@ export default function PomodoroTimer({
         }
     }
 
-    // 倒數歸零時播放提示音，每次計時只觸發一次。
-    useEffect(() => {
-        if (!hasStarted) {
-            hasPlayedSound.current = false
-            return
-        }
-
-        if (
-            !isRunning ||
-            remainingSeconds > 0 ||
-            hasPlayedSound.current
-        ) {
-            return
-        }
-
-        hasPlayedSound.current = true
-
-        if (soundEnabled) {
-            void playTimerSound(
-                timerSound,
-                soundVolume,
-                3
-            ).catch(console.warn)
-        }
-    }, [
-        hasStarted,
-        isRunning,
-        remainingSeconds,
-        soundEnabled,
-        timerSound,
-        soundVolume,
-    ])
-
-    // 轉換成 MM:SS 格式。
-    // 判斷目前是否處於超時正計時。
-    const isOvertime = remainingSeconds < 0
-
-    // 取得時間絕對值。
-    const displaySeconds = Math.abs(remainingSeconds)
-
-    // 轉換成 MM:SS 格式。
-    const minutes = String(
-        Math.floor(displaySeconds / 60)
-    ).padStart(2, '0')
-
-    const seconds = String(
-        displaySeconds % 60
-    ).padStart(2, '0')
-
-    // 篩選屬於今日的專注紀錄。
-    const todayRecords = focusRecords.filter(record =>
-        getWorkspaceDate(record.completedAt) === workspaceDate
-    )
-
-    // 計算今日番茄總數。
-    const todayTomatoes = todayRecords.reduce(
-        (total, record) => total + record.tomatoes,
-        0
-    )
-
-    // 計算今日累計專注秒數。
-    const todayFocusSeconds = todayRecords.reduce(
-        (total, record) => total + record.elapsedSeconds,
-        0
-    )
-
-    // 將累計專注時間轉換成小時與分鐘。
-    const todayFocusHours = Math.floor(todayFocusSeconds / 3600)
-    const todayFocusMinutes = Math.floor((todayFocusSeconds % 3600) / 60)
-
-    // 目前所處的循環階段。
-    const currentRound = Math.min(
-        4,
-        Math.max(1, mode === 'focus' ? focusCount + 1 : focusCount)
-    )
-
     return (
         <div className="flex flex-col items-center gap-8 py-12">
             {/* 模式切換 */}
@@ -384,9 +392,10 @@ export default function PomodoroTimer({
                         key={item.id}
                         onClick={() => changeMode(item.id)}
                         disabled={hasStarted}
-                        className={`cursor-pointer border-b-2 px-2 py-2 transition-colors disabled:cursor-default ${mode === item.id
-                            ? 'border-gray-800 font-semibold text-gray-800'
-                            : 'border-transparent text-gray-400 enabled:hover:text-gray-600'
+                        className={`cursor-pointer border-b-2 px-2 py-2 transition-colors disabled:cursor-default ${
+                            mode === item.id
+                                ? 'border-gray-800 font-semibold text-gray-800'
+                                : 'border-transparent text-gray-400 enabled:hover:text-gray-600'
                             }`}
                     >
                         {item.label}
@@ -408,7 +417,8 @@ export default function PomodoroTimer({
                     onClick={() => setIsSettingsOpen(prev => !prev)}
                     aria-label="計時設定"
                     title="計時設定"
-                    className={`absolute left-full ml-1 flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-800 sm:ml-3 ${hasStarted ? 'invisible' : ''
+                    className={`absolute left-full ml-1 flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-800 sm:ml-3 ${
+                            hasStarted ? 'invisible' : ''
                         }`}
                 >
                     <Settings size={22} />
@@ -452,6 +462,7 @@ export default function PomodoroTimer({
                     <SkipForward size={22} />
                 </button>
             </div>
+
             {/* 設定選單 */}
             {isSettingsOpen && (
                 <PomodoroSettings
@@ -480,13 +491,24 @@ export default function PomodoroTimer({
                     累計專注 {todayFocusHours} 小時 {todayFocusMinutes} 分鐘
                 </div>
             </div>
+
+            {/* 今日標題 */}
+            <input
+                type="text"
+                value={dailyTitles[workspaceDate] ?? ''}
+                onChange={e => updateDailyTitle(workspaceDate, e.target.value)}
+                placeholder="今日標題"
+                aria-label="今日標題"
+                className="w-full max-w-2xl rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none transition-colors focus:border-blue-500"
+            />
+
             {/* 今日專注紀錄 */}
             <FocusHistory
                 records={todayRecords}
                 dateTimeSettings={dateTimeSettings}
+                onAdd={addFocusRecord}
                 onUpdateNote={updateFocusNote}
                 onDelete={deleteFocusRecord}
-                onAdd={addFocusRecord}
             />
         </div>
     )

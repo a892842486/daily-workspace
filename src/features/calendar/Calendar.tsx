@@ -1,10 +1,29 @@
 
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
-import type { FocusRecord } from '../pomodoro-timer/FocusRecord'
+
 import FocusHistory from '../pomodoro-timer/FocusHistory'
+import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
+
+import type { FocusRecord } from '../pomodoro-timer/FocusRecord'
 import type { DateTimePreferences } from '../settings/dateTimePreferences'
+
+const weekdays = ['一', '二', '三', '四', '五', '六', '日']
+
+type Props = {
+    focusRecords: FocusRecord[]
+    dailyTitles: Record<string, string>
+    dateTimeSettings: DateTimePreferences
+
+    addFocusRecord: (
+        completedAt: number,
+        elapsedSeconds: number,
+        note?: string
+    ) => void
+    updateFocusNote: (id: string, note: string) => void
+    deleteFocusRecord: (id: string) => void
+    updateDailyTitle: (date: string, title: string) => void
+}
 
 // 將日期轉換成 YYYY-MM-DD。
 function getDateKey(date: Date) {
@@ -15,26 +34,14 @@ function getDateKey(date: Date) {
     return `${year}-${month}-${day}`
 }
 
-const weekdays = ['一', '二', '三', '四', '五', '六', '日']
-
-type Props = {
-    focusRecords: FocusRecord[]
-    dateTimeSettings: DateTimePreferences
-    updateFocusNote: (id: string, note: string) => void
-    deleteFocusRecord: (id: string) => void
-    addFocusRecord: (
-        completedAt: number,
-        elapsedSeconds: number,
-        note?: string
-    ) => void
-}
-
 export default function Calendar({
     focusRecords,
+    dailyTitles,
     dateTimeSettings,
+    addFocusRecord,
     updateFocusNote,
     deleteFocusRecord,
-    addFocusRecord,
+    updateDailyTitle,
 }: Props) {
     // 使用工作區日期作為今天。
     const today = getWorkspaceDate()
@@ -47,26 +54,7 @@ export default function Calendar({
     // 記錄目前選取的日期。
     const [selectedDate, setSelectedDate] = useState(today)
 
-    // 取得選取日期的專注紀錄。
-    const selectedRecords = focusRecords.filter(record =>
-        getWorkspaceDate(record.completedAt) === selectedDate
-    )
-
-    // 計算選取日期的番茄數量。
-    const selectedTomatoes = selectedRecords.reduce(
-        (total, record) => total + record.tomatoes,
-        0
-    )
-
-    // 計算選取日期的專注總時間。
-    const selectedFocusSeconds = selectedRecords.reduce(
-        (total, record) => total + record.elapsedSeconds,
-        0
-    )
-
-    const selectedFocusHours = Math.floor(selectedFocusSeconds / 3600)
-    const selectedFocusMinutes = Math.floor((selectedFocusSeconds % 3600) / 60)
-
+    // 月曆日期計算。
     const year = currentMonth.getFullYear()
     const month = currentMonth.getMonth()
 
@@ -90,6 +78,26 @@ export default function Calendar({
             index - firstWeekday + 1
         )
     )
+
+    // 取得選取日期的專注紀錄。
+    const selectedRecords = focusRecords.filter(record =>
+        getWorkspaceDate(record.completedAt) === selectedDate
+    )
+
+    // 計算選取日期的番茄數量。
+    const selectedTomatoes = selectedRecords.reduce(
+        (total, record) => total + record.tomatoes,
+        0
+    )
+
+    // 計算選取日期的專注總時間。
+    const selectedFocusSeconds = selectedRecords.reduce(
+        (total, record) => total + record.elapsedSeconds,
+        0
+    )
+
+    const selectedFocusHours = Math.floor(selectedFocusSeconds / 3600)
+    const selectedFocusMinutes = Math.floor((selectedFocusSeconds % 3600) / 60)
 
     // 切換月份。
     const changeMonth = (offset: number) => {
@@ -164,8 +172,9 @@ export default function Calendar({
                     {weekdays.map((day, index) => (
                         <div
                             key={day}
-                            className={`py-3 text-center text-sm text-gray-400 ${index >= 5 ? 'bg-gray-50' : ''
-                                }`}
+                            className={`py-3 text-center text-sm text-gray-400 ${
+                                index >= 5 ? 'bg-gray-50' : ''
+                            }`}
                         >
                             {day}
                         </div>
@@ -208,23 +217,28 @@ export default function Calendar({
                                 onClick={() => selectDate(date)}
                                 aria-pressed={isSelected}
                                 aria-label={dateKey}
-                                className={`flex min-h-20 min-w-0 cursor-pointer flex-col items-start border-r border-b border-gray-200 p-2 text-left transition-colors sm:min-h-28 ${isSelected
-                                    ? 'bg-blue-50 ring-1 ring-inset ring-blue-500'
-                                    : isWeekend
-                                        ? 'bg-gray-50 hover:bg-gray-100'
-                                        : 'hover:bg-gray-50'
-                                    }`}
+                                className={`flex min-h-20 min-w-0 cursor-pointer flex-col items-start border-r border-b border-gray-200 p-2 text-left transition-colors sm:min-h-28 ${
+                                    isSelected
+                                        ? 'bg-blue-50 ring-1 ring-inset ring-blue-500'
+                                        : isWeekend
+                                            ? 'bg-gray-50 hover:bg-gray-100'
+                                            : 'hover:bg-gray-50'
+                                }`}
                             >
+                                {/* 日期 */}
                                 <span
-                                    className={`flex h-7 w-7 items-center justify-center rounded-full text-sm tabular-nums ${isToday
-                                        ? 'bg-gray-800 text-white'
-                                        : isCurrentMonth
-                                            ? 'text-gray-800'
-                                            : 'text-gray-300'
-                                        }`}
+                                    className={`flex h-7 w-7 items-center justify-center rounded-full text-sm tabular-nums ${
+                                        isToday
+                                            ? 'bg-gray-800 text-white'
+                                            : isCurrentMonth
+                                                ? 'text-gray-800'
+                                                : 'text-gray-300'
+                                    }`}
                                 >
                                     {date.getDate()}
                                 </span>
+
+                                {/* 每日專注成果 */}
                                 {dayRecords.length > 0 && (
                                     <div className="mt-2 space-y-1">
                                         <div className="text-sm font-medium tabular-nums">
@@ -236,6 +250,13 @@ export default function Calendar({
                                         </div>
                                     </div>
                                 )}
+
+                                {/* 每日標題 */}
+                                {dailyTitles[dateKey] && (
+                                    <div className="mt-1 w-full line-clamp-2 break-words text-xs font-medium text-gray-700">
+                                        {dailyTitles[dateKey]}
+                                    </div>
+                                )}
                             </button>
                         )
                     })}
@@ -243,7 +264,7 @@ export default function Calendar({
             </div>
 
             {/* 選取日期的詳細成果 */}
-            <div className="rounded-lg border border-gray-200 p-4">
+            <div className="space-y-3 rounded-lg border border-gray-200 p-4">
                 <div className="flex items-center justify-between gap-3">
                     <h2 className="font-semibold tabular-nums">
                         {selectedDate.replaceAll('-', '/')}
@@ -259,17 +280,28 @@ export default function Calendar({
                         </span>
                     </div>
                 </div>
+
+                {/* 每日標題 */}
+                <input
+                    type="text"
+                    value={dailyTitles[selectedDate] ?? ''}
+                    onChange={e => updateDailyTitle(selectedDate, e.target.value)}
+                    placeholder="每日標題"
+                    aria-label="每日標題"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none transition-colors focus:border-blue-500"
+                />
             </div>
-            {/* 時間軸 */}
+
+            {/* 專注紀錄時間軸 */}
             <FocusHistory
                 key={selectedDate}
                 records={selectedRecords}
                 dateTimeSettings={dateTimeSettings}
-                onUpdateNote={updateFocusNote}
-                onDelete={deleteFocusRecord}
-                onAdd={addFocusRecord}
                 workspaceDate={selectedDate}
                 defaultOpen={true}
+                onAdd={addFocusRecord}
+                onUpdateNote={updateFocusNote}
+                onDelete={deleteFocusRecord}
             />
         </section>
     )
