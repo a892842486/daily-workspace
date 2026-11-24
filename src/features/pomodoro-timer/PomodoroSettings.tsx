@@ -1,5 +1,8 @@
 
 import { useEffect, useRef, useState } from 'react'
+import { Volume2, VolumeX, Play } from 'lucide-react'
+import { timerSounds, playTimerSound } from './playTimerSound'
+import type { TimerSound } from './playTimerSound'
 
 type TimerDurations = {
     focus: number
@@ -10,6 +13,12 @@ type TimerDurations = {
 type Props = {
     durations: TimerDurations
     onChange: (durations: TimerDurations) => void
+    soundEnabled: boolean
+    onSoundEnabledChange: (enabled: boolean) => void
+    timerSound: TimerSound
+    onTimerSoundChange: (sound: TimerSound) => void
+    soundVolume: number
+    onSoundVolumeChange: (volume: number) => void
 }
 
 // 三種預設方案。
@@ -134,6 +143,12 @@ function TimeInput({
 export default function PomodoroSettings({
     durations,
     onChange,
+    soundEnabled,
+    onSoundEnabledChange,
+    timerSound,
+    onTimerSoundChange,
+    soundVolume,
+    onSoundVolumeChange,
 }: Props) {
     // 更新指定模式的分鐘與秒數。
     const updateTime = (
@@ -220,6 +235,97 @@ export default function PomodoroSettings({
                         </div>
                     </div>
                 ))}
+            </div>
+            {/* 提示音設定 */}
+            <div className="space-y-4 border-t border-gray-200 pt-4">
+                {/* 提示音開關 */}
+                <div className="flex items-center gap-2 text-sm">
+                    {soundEnabled
+                        ? <Volume2 size={18} />
+                        : <VolumeX size={18} />}
+
+                    <span>計時結束提示音</span>
+
+                    <button
+                        type="button"
+                        role="switch"
+                        aria-label="計時結束提示音"
+                        aria-checked={soundEnabled}
+                        onClick={() => onSoundEnabledChange(!soundEnabled)}
+                        className={`relative ml-auto h-6 w-11 cursor-pointer rounded-full transition-colors ${soundEnabled ? 'bg-gray-800' : 'bg-gray-300'
+                            }`}
+                    >
+                        <span
+                            className={`absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition-transform ${soundEnabled ? 'translate-x-5' : ''
+                                }`}
+                        />
+                    </button>
+                </div>
+
+                {soundEnabled && (
+                    <>
+                        {/* 提示音種類 */}
+                        <div className="flex items-center gap-3 text-sm">
+                            <label htmlFor="timer-sound">
+                                提示音
+                            </label>
+
+                            <select
+                                id="timer-sound"
+                                value={timerSound}
+                                onChange={e =>
+                                    onTimerSoundChange(e.target.value as TimerSound)
+                                }
+                                className="min-w-0 flex-1 cursor-pointer rounded-md border border-gray-200 px-3 py-2 outline-none focus:border-blue-500"
+                            >
+                                {timerSounds.map(sound => (
+                                    <option key={sound.id} value={sound.id}>
+                                        {sound.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* 音量調整 */}
+                        <div className="flex items-center gap-3 text-sm">
+                            <label htmlFor="timer-volume">
+                                音量
+                            </label>
+
+                            <input
+                                id="timer-volume"
+                                type="range"
+                                min={0}
+                                max={100}
+                                step={5}
+                                value={soundVolume}
+                                onChange={e =>
+                                    onSoundVolumeChange(Number(e.target.value))
+                                }
+                                className="min-w-0 flex-1 cursor-pointer accent-gray-800"
+                            />
+
+                            <span className="w-10 text-right tabular-nums text-gray-500">
+                                {soundVolume}%
+                            </span>
+                        </div>
+
+                        {/* 試聽提示音 */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                void playTimerSound(
+                                    timerSound,
+                                    soundVolume
+                                ).catch(console.warn)
+                            }}
+                            className="mx-auto flex cursor-pointer items-center gap-2 rounded-md border border-gray-200 px-4 py-2 text-sm text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
+                        >
+                            <Play size={14} />
+                            試聽提示音
+                        </button>
+                    </>
+                )}
             </div>
         </div>
     )

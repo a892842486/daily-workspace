@@ -1,11 +1,13 @@
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { RotateCcw, SkipForward, Settings } from 'lucide-react'
 import PomodoroSettings from './PomodoroSettings'
 import FocusHistory from './FocusHistory'
 import { calculateTomatoes } from './calculateTomatoes'
 import type { FocusRecord } from './FocusRecord'
 import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
+import { initializeTimerAudio, playTimerSound } from './playTimerSound'
+import type { TimerSound } from './playTimerSound'
 
 type TimerMode = 'focus' | 'shortBreak' | 'longBreak'
 
@@ -83,6 +85,24 @@ export default function PomodoroTimer() {
     // 記錄設定選單是否展開。
     const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
+    // 讀取已儲存的提示音開關。
+    const [soundEnabled, setSoundEnabled] = useState(() => {
+        return localStorage.getItem('pomodoroSoundEnabled') !== 'false'
+    })
+
+    // 讀取已儲存的提示音種類。
+    const [timerSound, setTimerSound] = useState<TimerSound>(() => {
+        return (localStorage.getItem('pomodoroTimerSound') as TimerSound) ?? 'soft'
+    })
+
+    // 讀取已儲存的提示音音量。
+    const [soundVolume, setSoundVolume] = useState(() => {
+        return Number(localStorage.getItem('pomodoroSoundVolume') ?? 50)
+    })
+
+    // 記錄本次計時是否已播放結束提示音。
+    const hasPlayedSound = useRef(remainingSeconds <= 0)
+
     // 記錄目前所屬的工作區日期。
     const [workspaceDate, setWorkspaceDate] = useState(
         () => getWorkspaceDate()
@@ -111,6 +131,22 @@ export default function PomodoroTimer() {
             JSON.stringify(focusRecords)
         )
     }, [focusRecords])
+
+    // 自動儲存提示音設定。
+    useEffect(() => {
+        localStorage.setItem(
+            'pomodoroSoundEnabled',
+            String(soundEnabled)
+        )
+        localStorage.setItem(
+            'pomodoroTimerSound',
+            timerSound
+        )
+        localStorage.setItem(
+            'pomodoroSoundVolume',
+            String(soundVolume)
+        )
+    }, [soundEnabled, timerSound, soundVolume])
 
     // 自動儲存時間設定。
     useEffect(() => {
@@ -278,6 +314,9 @@ export default function PomodoroTimer() {
 
     // 開始、暫停或繼續計時。
     const toggleTimer = () => {
+        // 透過使用者操作解除瀏覽器的音訊播放限制。
+        void initializeTimerAudio().catch(console.warn)
+
         setIsSettingsOpen(false)
         setHasStarted(true)
 
@@ -297,6 +336,39 @@ export default function PomodoroTimer() {
             setIsRunning(true)
         }
     }
+
+    // 倒數歸零時播放提示音，每次計時只觸發一次。
+    useEffect(() => {
+        if (!hasStarted) {
+            hasPlayedSound.current = false
+            return
+        }
+
+        if (
+            !isRunning ||
+            remainingSeconds > 0 ||
+            hasPlayedSound.current
+        ) {
+            return
+        }
+
+        hasPlayedSound.current = true
+
+        if (soundEnabled) {
+            void playTimerSound(
+                timerSound,
+                soundVolume,
+                3
+            ).catch(console.warn)
+        }
+    }, [
+        hasStarted,
+        isRunning,
+        remainingSeconds,
+        soundEnabled,
+        timerSound,
+        soundVolume,
+    ])
 
     // 轉換成 MM:SS 格式。
     // 判斷目前是否處於超時正計時。
@@ -423,6 +495,12 @@ export default function PomodoroTimer() {
                 <PomodoroSettings
                     durations={durations}
                     onChange={updateDurations}
+                    soundEnabled={soundEnabled}
+                    onSoundEnabledChange={setSoundEnabled}
+                    timerSound={timerSound}
+                    onTimerSoundChange={setTimerSound}
+                    soundVolume={soundVolume}
+                    onSoundVolumeChange={setSoundVolume}
                 />
             )}
 
