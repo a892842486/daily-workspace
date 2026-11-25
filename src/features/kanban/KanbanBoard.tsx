@@ -2,9 +2,11 @@
 import { useState } from 'react'
 import AddButton from '../../components/AddButton'
 import TaskCard, { type Task } from './TaskCard'
+import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
 
 type KanbanBoardProps = {
   tasks: Task[]
+  workspaceDate: string
   addTask: () => void
   updateTask: (id: string, title: string) => void
   updateTaskStatus: (id: string, status: Task['status']) => void
@@ -14,6 +16,7 @@ type KanbanBoardProps = {
 
 export default function KanbanBoard({
   tasks,
+  workspaceDate,
   addTask,
   updateTask,
   updateTaskStatus,
@@ -22,6 +25,14 @@ export default function KanbanBoard({
 }: KanbanBoardProps) {
   // 記錄目前拖曳經過的任務，用於顯示高亮。
   const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null)
+
+  // 已完成任務只顯示當日紀錄，跨日後保留資料但隱藏卡片。
+  const visibleTasks = tasks.filter(task => {
+    if (task.status !== '完成') return true
+    if (task.completedAt === undefined) return true
+
+    return getWorkspaceDate(task.completedAt) === workspaceDate
+  })
 
   // 刪除任務前，先向使用者確認。
   const handleDeleteTask = (id: string) => {
@@ -51,8 +62,8 @@ export default function KanbanBoard({
           >
             <h2 className="mb-4 font-bold">{status}</h2>
 
-            {/* filter()：只顯示屬於目前欄位的任務。 */}
-            {tasks.filter(task => task.status === status).map(task => (
+            {/* 只顯示目前欄位中符合顯示條件的任務。 */}
+            {visibleTasks.filter(task => task.status === status).map(task => (
               <TaskCard
                 key={task.id}
                 task={task}

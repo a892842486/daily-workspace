@@ -17,6 +17,7 @@ import {
   getDateTimeSettings,
 } from './features/settings/dateTimePreferences'
 import { formatDateTime } from './utils/formatTime'
+import { getWorkspaceDate } from './utils/getWorkspaceDate'
 
 function App() {
   // useState：管理 React 狀態，狀態改變時會重新渲染畫面。
@@ -42,6 +43,9 @@ function App() {
 
   // new Date()：取得目前日期時間。
   const [now, setNow] = useState(() => new Date())
+
+  // 根據目前時間與換日設定，取得當前工作區日期。
+  const workspaceDate = getWorkspaceDate(now.getTime())
 
   // 讀取已儲存的日期與時間設定。
   const [dateTimeSettings, setDateTimeSettings] = useState(
@@ -169,13 +173,13 @@ function App() {
                 自由便籤
               </button>
             </div>
-
             {/* 根據 workspaceTab 切換工作代辦／自由便籤。 */}
             {workspaceTab === '自由便籤' ? (
               <FreeNotes />
             ) : (
               <KanbanBoard
                 tasks={tasks}
+                workspaceDate={workspaceDate}
                 addTask={addTask}
                 updateTask={updateTask}
                 updateTaskStatus={updateTaskStatus}
