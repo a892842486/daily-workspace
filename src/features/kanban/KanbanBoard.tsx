@@ -1,83 +1,44 @@
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import AddButton from '../../components/AddButton'
 import TaskCard, { type Task } from './TaskCard'
+import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
 
-export default function KanbanBoard() {
-  // 初始化工作任務：優先讀取 localStorage。
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    const savedTasks = localStorage.getItem('tasks')
-    return savedTasks ? JSON.parse(savedTasks) as Task[] : []
-  })
+type KanbanBoardProps = {
+  tasks: Task[]
+  workspaceDate: string
+  addTask: () => void
+  updateTask: (id: string, title: string) => void
+  updateTaskStatus: (id: string, status: Task['status']) => void
+  moveTask: (draggedId: string, targetId: string) => void
+  deleteTask: (id: string) => void
+}
 
+export default function KanbanBoard({
+  tasks,
+  workspaceDate,
+  addTask,
+  updateTask,
+  updateTaskStatus,
+  moveTask,
+  deleteTask,
+}: KanbanBoardProps) {
   // 記錄目前拖曳經過的任務，用於顯示高亮。
   const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null)
 
-  // 當 tasks 改變時，自動儲存任務。
-  useEffect(() => {
-    localStorage.setItem('tasks', JSON.stringify(tasks))
-  }, [tasks])
+  // 已完成任務只顯示當日紀錄，跨日後保留資料但隱藏卡片。
+  const visibleTasks = tasks.filter(task => {
+    if (task.status !== '完成') return true
+    if (task.completedAt === undefined) return true
 
-  // 新增任務，預設放入「待辦」欄位。
-  const addTask = () => {
-    const newTask: Task = {
-      id: crypto.randomUUID(),
-      title: '',
-      status: '待辦',
-    }
+    return getWorkspaceDate(task.completedAt) === workspaceDate
+  })
 
-    setTasks(prev => [...prev, newTask])
-  }
-
-  // 修改任務名稱。
-  const updateTask = (id: string, title: string) => {
-    setTasks(prev =>
-      prev.map(task =>
-        task.id === id ? { ...task, title } : task
-      )
-    )
-  }
-
-  // 修改任務狀態，移動到指定欄位。
-  const updateTaskStatus = (id: string, status: Task['status']) => {
-    setTasks(prev =>
-      prev.map(task =>
-        task.id === id ? { ...task, status } : task
-      )
-    )
-  }
-
-  // 移動任務：依拖曳方向，插入目標前方或後方。
-  const moveTask = (draggedId: string, targetId: string) => {
-    if (draggedId === targetId) return
-
-    setTasks(prev => {
-      const newTasks = [...prev]
-
-      const fromIndex = newTasks.findIndex(task => task.id === draggedId)
-      const originalTargetIndex = newTasks.findIndex(task => task.id === targetId)
-
-      if (fromIndex === -1 || originalTargetIndex === -1) return prev
-
-      const movingDown = fromIndex < originalTargetIndex
-
-      const [movedTask] = newTasks.splice(fromIndex, 1)
-      const targetIndex = newTasks.findIndex(task => task.id === targetId)
-
-      // 跨欄拖曳時，同步更新任務狀態。
-      movedTask.status = newTasks[targetIndex].status
-
-      newTasks.splice(targetIndex + (movingDown ? 1 : 0), 0, movedTask)
-
-      return newTasks
-    })
-  }
-
-  // 刪除任務：先確認，再移除指定任務。
-  const deleteTask = (id: string) => {
+  // 刪除任務前，先向使用者確認。
+  const handleDeleteTask = (id: string) => {
     if (!window.confirm('確定要刪除這項任務嗎？')) return
 
-    setTasks(prev => prev.filter(task => task.id !== id))
+    deleteTask(id)
   }
 
   return (
@@ -101,8 +62,8 @@ export default function KanbanBoard() {
           >
             <h2 className="mb-4 font-bold">{status}</h2>
 
-            {/* filter()：只顯示屬於目前欄位的任務。 */}
-            {tasks.filter(task => task.status === status).map(task => (
+            {/* 只顯示目前欄位中符合顯示條件的任務。 */}
+            {visibleTasks.filter(task => task.status === status).map(task => (
               <TaskCard
                 key={task.id}
                 task={task}
@@ -114,7 +75,7 @@ export default function KanbanBoard() {
                   setDragOverTaskId(null)
                 }}
                 onDragEnd={() => setDragOverTaskId(null)}
-                onDelete={deleteTask}
+                onDelete={handleDeleteTask}
                 onTitleChange={updateTask}
               />
             ))}

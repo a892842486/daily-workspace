@@ -10,12 +10,15 @@ import Settings from './features/settings/Settings'
 
 import { useFocusRecords } from './features/pomodoro-timer/useFocusRecords'
 import { useDailyTitles } from './features/calendar/useDailyTitles'
+import { useTasks } from './features/kanban/useTasks'
+import { useEventRecords } from './features/event-records/useEventRecords'
 
 import {
   DATE_TIME_SETTINGS_KEY,
   getDateTimeSettings,
 } from './features/settings/dateTimePreferences'
 import { formatDateTime } from './utils/formatTime'
+import { getWorkspaceDate } from './utils/getWorkspaceDate'
 
 function App() {
   // useState：管理 React 狀態，狀態改變時會重新渲染畫面。
@@ -42,6 +45,9 @@ function App() {
   // new Date()：取得目前日期時間。
   const [now, setNow] = useState(() => new Date())
 
+  // 根據目前時間與換日設定，取得當前工作區日期。
+  const workspaceDate = getWorkspaceDate(now.getTime())
+
   // 讀取已儲存的日期與時間設定。
   const [dateTimeSettings, setDateTimeSettings] = useState(
     getDateTimeSettings
@@ -60,6 +66,24 @@ function App() {
     dailyTitles,
     updateDailyTitle,
   } = useDailyTitles()
+
+  // 共用工作任務。
+  const {
+    tasks,
+    addTask,
+    updateTask,
+    updateTaskStatus,
+    moveTask,
+    deleteTask,
+  } = useTasks()
+
+  // 共用生活紀錄。
+  const {
+    eventRecords,
+    addEventRecord,
+    updateEventRecord,
+    deleteEventRecord,
+  } = useEventRecords()
 
   // useEffect：處理 React 渲染後需要執行的副作用。
   // [page]：當 page 改變時，將最新頁面儲存到 localStorage。
@@ -140,37 +164,49 @@ function App() {
             <div className="mb-6 flex gap-4 border-b border-gray-200">
               <button
                 onClick={() => setWorkspaceTab('工作代辦')}
-                className={`cursor-pointer pb-2 ${
-                  workspaceTab === '工作代辦'
-                    ? 'border-b-2 border-gray-800 font-bold'
-                    : 'text-gray-400'
-                }`}
+                className={`cursor-pointer pb-2 ${workspaceTab === '工作代辦'
+                  ? 'border-b-2 border-gray-800 font-bold'
+                  : 'text-gray-400'
+                  }`}
               >
                 工作代辦
               </button>
 
               <button
                 onClick={() => setWorkspaceTab('自由便籤')}
-                className={`cursor-pointer pb-2 ${
-                  workspaceTab === '自由便籤'
-                    ? 'border-b-2 border-gray-800 font-bold'
-                    : 'text-gray-400'
-                }`}
+                className={`cursor-pointer pb-2 ${workspaceTab === '自由便籤'
+                  ? 'border-b-2 border-gray-800 font-bold'
+                  : 'text-gray-400'
+                  }`}
               >
                 自由便籤
               </button>
             </div>
-
             {/* 根據 workspaceTab 切換工作代辦／自由便籤。 */}
             {workspaceTab === '自由便籤' ? (
               <FreeNotes />
             ) : (
-              <KanbanBoard />
+              <KanbanBoard
+                tasks={tasks}
+                workspaceDate={workspaceDate}
+                addTask={addTask}
+                updateTask={updateTask}
+                updateTaskStatus={updateTaskStatus}
+                moveTask={moveTask}
+                deleteTask={deleteTask}
+              />
             )}
           </div>
         ) : page === '日曆' ? (
           <Calendar
             focusRecords={focusRecords}
+            tasks={tasks}
+            eventRecords={eventRecords}
+            addEventRecord={addEventRecord}
+            updateEventRecord={updateEventRecord}
+            deleteEventRecord={deleteEventRecord}
+            updateTask={updateTask}
+            deleteTask={deleteTask}
             dailyTitles={dailyTitles}
             dateTimeSettings={dateTimeSettings}
             addFocusRecord={addFocusRecord}
@@ -193,6 +229,13 @@ function App() {
         <div className={page === '寬鬆番茄鐘' ? '' : 'hidden'}>
           <PomodoroTimer
             focusRecords={focusRecords}
+            tasks={tasks}
+            eventRecords={eventRecords}
+            addEventRecord={addEventRecord}
+            updateEventRecord={updateEventRecord}
+            deleteEventRecord={deleteEventRecord}
+            updateTask={updateTask}
+            deleteTask={deleteTask}
             dailyTitles={dailyTitles}
             dateTimeSettings={dateTimeSettings}
             addFocusRecord={addFocusRecord}

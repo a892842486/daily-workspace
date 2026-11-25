@@ -3,13 +3,15 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { RotateCcw, SkipForward, Settings } from 'lucide-react'
 
 import PomodoroSettings from './PomodoroSettings'
-import FocusHistory from './FocusHistory'
+import WorkHistory from '../work-history/WorkHistory'
 import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
 import { initializeTimerAudio, playTimerSound } from './playTimerSound'
 
 import type { FocusRecord } from './FocusRecord'
 import type { TimerSound } from './playTimerSound'
 import type { DateTimePreferences } from '../settings/dateTimePreferences'
+import type { Task } from '../kanban/TaskCard'
+import type { EventRecord } from '../event-records/EventRecord'
 
 // 三種計時模式。
 const modes = [
@@ -42,6 +44,13 @@ const defaultDurations: TimerDurations = {
 
 type Props = {
     focusRecords: FocusRecord[]
+    tasks: Task[]
+    eventRecords: EventRecord[]
+    addEventRecord: (occurredAt: number, title: string) => void
+    updateEventRecord: (id: string, occurredAt: number, title: string) => void
+    deleteEventRecord: (id: string) => void
+    updateTask: (id: string, title: string, completedAt?: number) => void
+    deleteTask: (id: string) => void
     dailyTitles: Record<string, string>
     dateTimeSettings: DateTimePreferences
 
@@ -57,6 +66,13 @@ type Props = {
 
 export default function PomodoroTimer({
     focusRecords,
+    tasks,
+    eventRecords,
+    addEventRecord,
+    updateEventRecord,
+    deleteEventRecord,
+    updateTask,
+    deleteTask,
     dailyTitles,
     dateTimeSettings,
     addFocusRecord,
@@ -516,8 +532,15 @@ export default function PomodoroTimer({
 
             {/* 今日專注紀錄 */}
             <div className="w-full max-w-2xl">
-                <FocusHistory
+                <WorkHistory
                     records={todayRecords}
+                    tasks={tasks}
+                    eventRecords={eventRecords}
+                    onAddEvent={addEventRecord}
+                    onUpdateEvent={updateEventRecord}
+                    onDeleteEvent={deleteEventRecord}
+                    onUpdateTask={updateTask}
+                    onDeleteTask={deleteTask}
                     dateTimeSettings={dateTimeSettings}
                     workspaceDate={workspaceDate}
                     dailyTitle={dailyTitles[workspaceDate] ?? ''}
