@@ -109,6 +109,11 @@ export default function PomodoroTimer({
         savedState?.focusCount ?? 0
     )
 
+    // 讀取本次尚未結算的專注內容。
+    const [focusNote, setFocusNote] = useState(() => {
+        return localStorage.getItem('pomodoroFocusNote') ?? ''
+    })
+
     // 記錄設定選單是否展開。
     const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
@@ -185,6 +190,11 @@ export default function PomodoroTimer({
 
         return () => window.clearInterval(timer)
     }, [])
+
+    // 自動儲存本次專注內容。
+    useEffect(() => {
+        localStorage.setItem('pomodoroFocusNote', focusNote)
+    }, [focusNote])
 
     // 自動儲存提示音設定。
     useEffect(() => {
@@ -300,7 +310,7 @@ export default function PomodoroTimer({
         setRemainingSeconds(nextDurations[mode])
     }
 
-    // 結算本次專注時間。
+    // 結算本次專注時間及內容。
     const settleFocus = useCallback(() => {
         if (mode !== 'focus' || !hasStarted) return
 
@@ -315,7 +325,8 @@ export default function PomodoroTimer({
 
         if (elapsedSeconds === 0) return
 
-        addFocusRecord(Date.now(), elapsedSeconds)
+        addFocusRecord(Date.now(), elapsedSeconds, focusNote)
+        setFocusNote('')
     }, [
         mode,
         hasStarted,
@@ -323,6 +334,7 @@ export default function PomodoroTimer({
         endTime,
         remainingSeconds,
         durations.focus,
+        focusNote,
         addFocusRecord,
     ])
 
@@ -392,10 +404,9 @@ export default function PomodoroTimer({
                         key={item.id}
                         onClick={() => changeMode(item.id)}
                         disabled={hasStarted}
-                        className={`cursor-pointer border-b-2 px-2 py-2 transition-colors disabled:cursor-default ${
-                            mode === item.id
-                                ? 'border-gray-800 font-semibold text-gray-800'
-                                : 'border-transparent text-gray-400 enabled:hover:text-gray-600'
+                        className={`cursor-pointer border-b-2 px-2 py-2 transition-colors disabled:cursor-default ${mode === item.id
+                            ? 'border-gray-800 font-semibold text-gray-800'
+                            : 'border-transparent text-gray-400 enabled:hover:text-gray-600'
                             }`}
                     >
                         {item.label}
@@ -417,8 +428,7 @@ export default function PomodoroTimer({
                     onClick={() => setIsSettingsOpen(prev => !prev)}
                     aria-label="計時設定"
                     title="計時設定"
-                    className={`absolute left-full ml-1 flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-800 sm:ml-3 ${
-                            hasStarted ? 'invisible' : ''
+                    className={`absolute left-full ml-1 flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-800 sm:ml-3 ${hasStarted ? 'invisible' : ''
                         }`}
                 >
                     <Settings size={22} />
@@ -477,6 +487,18 @@ export default function PomodoroTimer({
                 />
             )}
 
+            {/* 本次專注內容 */}
+            {mode === 'focus' && (
+                <textarea
+                    value={focusNote}
+                    onChange={e => setFocusNote(e.target.value)}
+                    placeholder="這次專注做了什麼？"
+                    aria-label="本次專注內容"
+                    rows={2}
+                    className="w-full max-w-2xl resize-none rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none transition-colors focus:border-blue-500"
+                />
+            )}
+
             {/* 今日專注成果 */}
             <div className="flex flex-col items-center gap-2 pt-4">
                 <div className="text-sm text-gray-400">
@@ -492,24 +514,21 @@ export default function PomodoroTimer({
                 </div>
             </div>
 
-            {/* 今日標題 */}
-            <input
-                type="text"
-                value={dailyTitles[workspaceDate] ?? ''}
-                onChange={e => updateDailyTitle(workspaceDate, e.target.value)}
-                placeholder="今日標題"
-                aria-label="今日標題"
-                className="w-full max-w-2xl rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none transition-colors focus:border-blue-500"
-            />
-
             {/* 今日專注紀錄 */}
-            <FocusHistory
-                records={todayRecords}
-                dateTimeSettings={dateTimeSettings}
-                onAdd={addFocusRecord}
-                onUpdateNote={updateFocusNote}
-                onDelete={deleteFocusRecord}
-            />
+            <div className="w-full max-w-2xl">
+                <FocusHistory
+                    records={todayRecords}
+                    dateTimeSettings={dateTimeSettings}
+                    workspaceDate={workspaceDate}
+                    dailyTitle={dailyTitles[workspaceDate] ?? ''}
+                    onUpdateDailyTitle={title =>
+                        updateDailyTitle(workspaceDate, title)
+                    }
+                    onAdd={addFocusRecord}
+                    onUpdateNote={updateFocusNote}
+                    onDelete={deleteFocusRecord}
+                />
+            </div>
         </div>
     )
 }
