@@ -10,6 +10,7 @@ import Settings from './features/settings/Settings'
 
 import { useFocusRecords } from './features/pomodoro-timer/useFocusRecords'
 import { useDailyTitles } from './features/calendar/useDailyTitles'
+import { useTasks } from './features/kanban/useTasks'
 
 import {
   DATE_TIME_SETTINGS_KEY,
@@ -60,6 +61,16 @@ function App() {
     dailyTitles,
     updateDailyTitle,
   } = useDailyTitles()
+
+  // 共用工作任務。
+  const {
+    tasks,
+    addTask,
+    updateTask,
+    updateTaskStatus,
+    moveTask,
+    deleteTask,
+  } = useTasks()
 
   // useEffect：處理 React 渲染後需要執行的副作用。
   // [page]：當 page 改變時，將最新頁面儲存到 localStorage。
@@ -140,22 +151,20 @@ function App() {
             <div className="mb-6 flex gap-4 border-b border-gray-200">
               <button
                 onClick={() => setWorkspaceTab('工作代辦')}
-                className={`cursor-pointer pb-2 ${
-                  workspaceTab === '工作代辦'
-                    ? 'border-b-2 border-gray-800 font-bold'
-                    : 'text-gray-400'
-                }`}
+                className={`cursor-pointer pb-2 ${workspaceTab === '工作代辦'
+                  ? 'border-b-2 border-gray-800 font-bold'
+                  : 'text-gray-400'
+                  }`}
               >
                 工作代辦
               </button>
 
               <button
                 onClick={() => setWorkspaceTab('自由便籤')}
-                className={`cursor-pointer pb-2 ${
-                  workspaceTab === '自由便籤'
-                    ? 'border-b-2 border-gray-800 font-bold'
-                    : 'text-gray-400'
-                }`}
+                className={`cursor-pointer pb-2 ${workspaceTab === '自由便籤'
+                  ? 'border-b-2 border-gray-800 font-bold'
+                  : 'text-gray-400'
+                  }`}
               >
                 自由便籤
               </button>
@@ -165,7 +174,14 @@ function App() {
             {workspaceTab === '自由便籤' ? (
               <FreeNotes />
             ) : (
-              <KanbanBoard />
+              <KanbanBoard
+                tasks={tasks}
+                addTask={addTask}
+                updateTask={updateTask}
+                updateTaskStatus={updateTaskStatus}
+                moveTask={moveTask}
+                deleteTask={deleteTask}
+              />
             )}
           </div>
         ) : page === '日曆' ? (

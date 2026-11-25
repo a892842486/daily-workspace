@@ -4,6 +4,7 @@ export type Task = {
   id: string
   title: string
   status: '待辦' | '進行中' | '完成'
+  completedAt?: number
 }
 
 type TaskCardProps = {
@@ -48,11 +49,10 @@ export default function TaskCard({
         onDrop(draggedId, task.id)
       }}
       onDragEnd={onDragEnd}
-      className={`relative mb-2 rounded-lg border p-3 text-sm transition-colors ${
-        isDragOver
+      className={`relative mb-2 rounded-lg border p-3 text-sm transition-colors ${isDragOver
           ? 'border-blue-500 bg-blue-50'
           : 'border-gray-200 bg-white'
-      }`}
+        }`}
     >
       {/* 刪除任務按鈕 */}
       <button
