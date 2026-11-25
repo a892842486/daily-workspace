@@ -84,21 +84,6 @@ export default function Calendar({
         getWorkspaceDate(record.completedAt) === selectedDate
     )
 
-    // 計算選取日期的番茄數量。
-    const selectedTomatoes = selectedRecords.reduce(
-        (total, record) => total + record.tomatoes,
-        0
-    )
-
-    // 計算選取日期的專注總時間。
-    const selectedFocusSeconds = selectedRecords.reduce(
-        (total, record) => total + record.elapsedSeconds,
-        0
-    )
-
-    const selectedFocusHours = Math.floor(selectedFocusSeconds / 3600)
-    const selectedFocusMinutes = Math.floor((selectedFocusSeconds % 3600) / 60)
-
     // 切換月份。
     const changeMonth = (offset: number) => {
         setCurrentMonth(new Date(year, month + offset, 1))
@@ -172,9 +157,8 @@ export default function Calendar({
                     {weekdays.map((day, index) => (
                         <div
                             key={day}
-                            className={`py-3 text-center text-sm text-gray-400 ${
-                                index >= 5 ? 'bg-gray-50' : ''
-                            }`}
+                            className={`py-3 text-center text-sm text-gray-400 ${index >= 5 ? 'bg-gray-50' : ''
+                                }`}
                         >
                             {day}
                         </div>
@@ -217,23 +201,21 @@ export default function Calendar({
                                 onClick={() => selectDate(date)}
                                 aria-pressed={isSelected}
                                 aria-label={dateKey}
-                                className={`flex min-h-20 min-w-0 cursor-pointer flex-col items-start border-r border-b border-gray-200 p-2 text-left transition-colors sm:min-h-28 ${
-                                    isSelected
+                                className={`flex min-h-20 min-w-0 cursor-pointer flex-col items-start border-r border-b border-gray-200 p-2 text-left transition-colors sm:min-h-28 ${isSelected
                                         ? 'bg-blue-50 ring-1 ring-inset ring-blue-500'
                                         : isWeekend
                                             ? 'bg-gray-50 hover:bg-gray-100'
                                             : 'hover:bg-gray-50'
-                                }`}
+                                    }`}
                             >
                                 {/* 日期 */}
                                 <span
-                                    className={`flex h-7 w-7 items-center justify-center rounded-full text-sm tabular-nums ${
-                                        isToday
+                                    className={`flex h-7 w-7 items-center justify-center rounded-full text-sm tabular-nums ${isToday
                                             ? 'bg-gray-800 text-white'
                                             : isCurrentMonth
                                                 ? 'text-gray-800'
                                                 : 'text-gray-300'
-                                    }`}
+                                        }`}
                                 >
                                     {date.getDate()}
                                 </span>
@@ -263,42 +245,18 @@ export default function Calendar({
                 </div>
             </div>
 
-            {/* 選取日期的詳細成果 */}
-            <div className="space-y-3 rounded-lg border border-gray-200 p-4">
-                <div className="flex items-center justify-between gap-3">
-                    <h2 className="font-semibold tabular-nums">
-                        {selectedDate.replaceAll('-', '/')}
-                    </h2>
-
-                    <div className="flex items-center gap-4 tabular-nums">
-                        <span className="font-medium">
-                            🍅 {selectedTomatoes}
-                        </span>
-
-                        <span className="text-sm text-gray-500">
-                            {selectedFocusHours}h {selectedFocusMinutes}m
-                        </span>
-                    </div>
-                </div>
-
-                {/* 每日標題 */}
-                <input
-                    type="text"
-                    value={dailyTitles[selectedDate] ?? ''}
-                    onChange={e => updateDailyTitle(selectedDate, e.target.value)}
-                    placeholder="每日標題"
-                    aria-label="每日標題"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none transition-colors focus:border-blue-500"
-                />
-            </div>
-
-            {/* 專注紀錄時間軸 */}
+            {/* 選取日期的專注紀錄 */}
             <FocusHistory
                 key={selectedDate}
                 records={selectedRecords}
                 dateTimeSettings={dateTimeSettings}
                 workspaceDate={selectedDate}
                 defaultOpen={true}
+                dailyTitle={dailyTitles[selectedDate] ?? ''}
+                showDate={true}
+                onUpdateDailyTitle={title =>
+                    updateDailyTitle(selectedDate, title)
+                }
                 onAdd={addFocusRecord}
                 onUpdateNote={updateFocusNote}
                 onDelete={deleteFocusRecord}

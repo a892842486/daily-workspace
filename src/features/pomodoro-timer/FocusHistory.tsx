@@ -14,6 +14,9 @@ type Props = {
     dateTimeSettings: DateTimePreferences
     workspaceDate?: string
     defaultOpen?: boolean
+    dailyTitle: string
+    showDate?: boolean
+    onUpdateDailyTitle: (title: string) => void
 
     onAdd: (
         completedAt: number,
@@ -29,6 +32,9 @@ export default function FocusHistory({
     dateTimeSettings,
     workspaceDate = getWorkspaceDate(),
     defaultOpen = false,
+    dailyTitle,
+    showDate = false,
+    onUpdateDailyTitle,
     onAdd,
     onUpdateNote,
     onDelete,
@@ -46,6 +52,21 @@ export default function FocusHistory({
     const sortedRecords = [...records].sort(
         (a, b) => a.completedAt - b.completedAt
     )
+
+    // 計算當日番茄數量。
+    const totalTomatoes = records.reduce(
+        (total, record) => total + record.tomatoes,
+        0
+    )
+
+    // 計算當日累計專注時間。
+    const totalFocusSeconds = records.reduce(
+        (total, record) => total + record.elapsedSeconds,
+        0
+    )
+
+    const totalFocusHours = Math.floor(totalFocusSeconds / 3600)
+    const totalFocusMinutes = Math.floor((totalFocusSeconds % 3600) / 60)
 
     // 展開補登表單並填入預設值。
     const openAddForm = () => {
@@ -87,21 +108,40 @@ export default function FocusHistory({
     }
 
     return (
-        <div className="w-full max-w-2xl rounded-lg border border-gray-200">
+        <div className="w-full rounded-lg border border-gray-200">
             {/* 展開與收合 */}
             <button
                 type="button"
                 onClick={() => setIsOpen(prev => !prev)}
-                className="flex w-full cursor-pointer items-center justify-between px-4 py-3"
+                className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-3"
             >
-                <span className="font-medium">
-                    {workspaceDate === getWorkspaceDate()
-                        ? '今日專注紀錄'
-                        : '專注紀錄'}
-                    <span className="ml-2 text-sm font-normal text-gray-400">
-                        {records.length} 筆
+                {showDate ? (
+                    <>
+                        <span className="font-semibold tabular-nums">
+                            {workspaceDate.replaceAll('-', '/')}
+                        </span>
+
+                        <div className="ml-auto flex items-center gap-4 tabular-nums">
+                            <span className="font-medium">
+                                🍅 {totalTomatoes}
+                            </span>
+
+                            <span className="text-sm text-gray-500">
+                                {totalFocusHours}h {totalFocusMinutes}m
+                            </span>
+                        </div>
+                    </>
+                ) : (
+                    <span className="font-medium">
+                        {workspaceDate === getWorkspaceDate()
+                            ? '今日專注紀錄'
+                            : '專注紀錄'}
+
+                        <span className="ml-2 text-sm font-normal text-gray-400">
+                            {records.length} 筆
+                        </span>
                     </span>
-                </span>
+                )}
 
                 {isOpen
                     ? <ChevronUp size={18} />
@@ -111,6 +151,16 @@ export default function FocusHistory({
             {/* 專注紀錄列表 */}
             {isOpen && (
                 <div className="border-t border-gray-200 px-4 py-4">
+                    {/* 每日標題 */}
+                    <input
+                        type="text"
+                        value={dailyTitle}
+                        onChange={e => onUpdateDailyTitle(e.target.value)}
+                        placeholder="一句話說這天做了什麼吧"
+                        aria-label="每日標題"
+                        className="mb-4 w-full rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none transition-colors focus:border-blue-500"
+                    />
+
                     {/* 補登專注紀錄 */}
                     <div className="mb-5">
                         {!isAdding ? (
