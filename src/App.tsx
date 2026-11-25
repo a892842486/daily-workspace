@@ -11,6 +11,7 @@ import Settings from './features/settings/Settings'
 import { useFocusRecords } from './features/pomodoro-timer/useFocusRecords'
 import { useDailyTitles } from './features/calendar/useDailyTitles'
 import { useTasks } from './features/kanban/useTasks'
+import { useEventRecords } from './features/event-records/useEventRecords'
 
 import {
   DATE_TIME_SETTINGS_KEY,
@@ -75,6 +76,14 @@ function App() {
     moveTask,
     deleteTask,
   } = useTasks()
+
+  // 共用生活紀錄。
+  const {
+    eventRecords,
+    addEventRecord,
+    updateEventRecord,
+    deleteEventRecord,
+  } = useEventRecords()
 
   // useEffect：處理 React 渲染後需要執行的副作用。
   // [page]：當 page 改變時，將最新頁面儲存到 localStorage。
@@ -191,6 +200,13 @@ function App() {
         ) : page === '日曆' ? (
           <Calendar
             focusRecords={focusRecords}
+            tasks={tasks}
+            eventRecords={eventRecords}
+            addEventRecord={addEventRecord}
+            updateEventRecord={updateEventRecord}
+            deleteEventRecord={deleteEventRecord}
+            updateTask={updateTask}
+            deleteTask={deleteTask}
             dailyTitles={dailyTitles}
             dateTimeSettings={dateTimeSettings}
             addFocusRecord={addFocusRecord}
@@ -213,6 +229,13 @@ function App() {
         <div className={page === '寬鬆番茄鐘' ? '' : 'hidden'}>
           <PomodoroTimer
             focusRecords={focusRecords}
+            tasks={tasks}
+            eventRecords={eventRecords}
+            addEventRecord={addEventRecord}
+            updateEventRecord={updateEventRecord}
+            deleteEventRecord={deleteEventRecord}
+            updateTask={updateTask}
+            deleteTask={deleteTask}
             dailyTitles={dailyTitles}
             dateTimeSettings={dateTimeSettings}
             addFocusRecord={addFocusRecord}

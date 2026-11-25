@@ -40,11 +40,21 @@ export function useTasks() {
     setTasks(prev => [...prev, newTask])
   }
 
-  // 修改任務名稱。
-  const updateTask = (id: string, title: string) => {
+  // 修改任務名稱，並支援更新完成時間。
+  const updateTask = (
+    id: string,
+    title: string,
+    completedAt?: number
+  ) => {
     setTasks(prev =>
       prev.map(task =>
-        task.id === id ? { ...task, title } : task
+        task.id === id
+          ? {
+            ...task,
+            title,
+            completedAt: completedAt ?? task.completedAt,
+          }
+          : task
       )
     )
   }

@@ -2,16 +2,25 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
-import FocusHistory from '../pomodoro-timer/FocusHistory'
+import WorkHistory from '../work-history/WorkHistory'
 import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
 
 import type { FocusRecord } from '../pomodoro-timer/FocusRecord'
 import type { DateTimePreferences } from '../settings/dateTimePreferences'
+import type { Task } from '../kanban/TaskCard'
+import type { EventRecord } from '../event-records/EventRecord'
 
 const weekdays = ['一', '二', '三', '四', '五', '六', '日']
 
 type Props = {
     focusRecords: FocusRecord[]
+    tasks: Task[]
+    eventRecords: EventRecord[]
+    addEventRecord: (occurredAt: number, title: string) => void
+    updateEventRecord: (id: string, occurredAt: number, title: string) => void
+    deleteEventRecord: (id: string) => void
+    updateTask: (id: string, title: string, completedAt?: number) => void
+    deleteTask: (id: string) => void
     dailyTitles: Record<string, string>
     dateTimeSettings: DateTimePreferences
 
@@ -36,6 +45,13 @@ function getDateKey(date: Date) {
 
 export default function Calendar({
     focusRecords,
+    tasks,
+    eventRecords,
+    addEventRecord,
+    updateEventRecord,
+    deleteEventRecord,
+    updateTask,
+    deleteTask,
     dailyTitles,
     dateTimeSettings,
     addFocusRecord,
@@ -202,19 +218,19 @@ export default function Calendar({
                                 aria-pressed={isSelected}
                                 aria-label={dateKey}
                                 className={`flex min-h-20 min-w-0 cursor-pointer flex-col items-start border-r border-b border-gray-200 p-2 text-left transition-colors sm:min-h-28 ${isSelected
-                                        ? 'bg-blue-50 ring-1 ring-inset ring-blue-500'
-                                        : isWeekend
-                                            ? 'bg-gray-50 hover:bg-gray-100'
-                                            : 'hover:bg-gray-50'
+                                    ? 'bg-blue-50 ring-1 ring-inset ring-blue-500'
+                                    : isWeekend
+                                        ? 'bg-gray-50 hover:bg-gray-100'
+                                        : 'hover:bg-gray-50'
                                     }`}
                             >
                                 {/* 日期 */}
                                 <span
                                     className={`flex h-7 w-7 items-center justify-center rounded-full text-sm tabular-nums ${isToday
-                                            ? 'bg-gray-800 text-white'
-                                            : isCurrentMonth
-                                                ? 'text-gray-800'
-                                                : 'text-gray-300'
+                                        ? 'bg-gray-800 text-white'
+                                        : isCurrentMonth
+                                            ? 'text-gray-800'
+                                            : 'text-gray-300'
                                         }`}
                                 >
                                     {date.getDate()}
@@ -246,9 +262,16 @@ export default function Calendar({
             </div>
 
             {/* 選取日期的專注紀錄 */}
-            <FocusHistory
+            <WorkHistory
                 key={selectedDate}
                 records={selectedRecords}
+                tasks={tasks}
+                eventRecords={eventRecords}
+                onAddEvent={addEventRecord}
+                onUpdateEvent={updateEventRecord}
+                onDeleteEvent={deleteEventRecord}
+                onUpdateTask={updateTask}
+                onDeleteTask={deleteTask}
                 dateTimeSettings={dateTimeSettings}
                 workspaceDate={selectedDate}
                 defaultOpen={true}
