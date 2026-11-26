@@ -5,8 +5,11 @@ import DailyChecklist from './features/daily-checklist/DailyChecklist'
 import KanbanBoard from './features/kanban/KanbanBoard'
 import FreeNotes from './features/free-notes/FreeNotes'
 import PomodoroTimer from './features/pomodoro-timer/PomodoroTimer'
+import type { TimerDisplayInfo } from './features/pomodoro-timer/PomodoroTimer'
 import Calendar from './features/calendar/Calendar'
 import Settings from './features/settings/Settings'
+import GlobalTimer from './components/GlobalTimer'
+import { LayoutDashboard, CalendarDays, Settings as SettingsIcon } from 'lucide-react'
 
 import { useFocusRecords } from './features/pomodoro-timer/useFocusRecords'
 import { useDailyTitles } from './features/calendar/useDailyTitles'
@@ -44,6 +47,10 @@ function App() {
 
   // new Date()：取得目前日期時間。
   const [now, setNow] = useState(() => new Date())
+
+  // 接收番茄鐘回報的全域計時顯示資訊。
+  const [timerDisplayInfo, setTimerDisplayInfo] =
+    useState<TimerDisplayInfo | null>(null)
 
   // 根據目前時間與換日設定，取得當前工作區日期。
   const workspaceDate = getWorkspaceDate(now.getTime())
@@ -120,6 +127,18 @@ function App() {
     )
   }, [dateTimeSettings])
 
+  // 根據全域計時資訊更新瀏覽器分頁標題。
+  useEffect(() => {
+    if (!timerDisplayInfo) {
+      document.title = 'Daily Workspace'
+      return
+    }
+
+    const status = timerDisplayInfo.isRunning ? '' : '（暫停）'
+
+    document.title = `${timerDisplayInfo.displayTime} · ${timerDisplayInfo.modeLabel}${status}`
+  }, [timerDisplayInfo])
+
   return (
     <div className="min-h-screen bg-white text-gray-800">
       {/* 頂部導覽列 */}
@@ -136,11 +155,38 @@ function App() {
 
         {/* 條件渲染：isNavOpen 為 true 才顯示頁面按鈕。 */}
         {isNavOpen && (
-          <div className="flex flex-wrap gap-4">
-            <button onClick={() => setPage('工作區')}>工作區</button>
-            <button onClick={() => setPage('寬鬆番茄鐘')}>寬鬆番茄鐘</button>
-            <button onClick={() => setPage('日曆')}>日曆</button>
-            <button onClick={() => setPage('設定')}>設定</button>
+          <div className="flex flex-wrap items-center gap-2">
+            <GlobalTimer
+              label="🍅"
+              displayTime={timerDisplayInfo?.displayTime ?? '--:--'}
+              isRunning={timerDisplayInfo?.isRunning ?? false}
+              onClick={() => setPage('寬鬆番茄鐘')}
+            />
+
+            <button
+              onClick={() => setPage('工作區')}
+              title="工作區"
+              className="flex items-center justify-center rounded-lg p-2 hover:bg-gray-100 transition-colors"
+            >
+              <LayoutDashboard size={18} />
+            </button>
+
+            <button
+              onClick={() => setPage('日曆')}
+              title="日歷"
+              className="flex items-center justify-center rounded-lg p-2 transition-colors hover:bg-gray-100"
+            >
+              <CalendarDays size={18} />
+            </button>
+
+            <button
+              onClick={() => setPage('設定')}
+              title="設定"
+              className="flex items-center justify-center rounded-lg p-2 transition-colors hover:bg-gray-100"
+
+            >
+              <SettingsIcon size={18} />
+            </button>
           </div>
         )}
 
@@ -228,6 +274,7 @@ function App() {
         {/* 番茄鐘持續掛載，切換頁面時僅隱藏畫面。 */}
         <div className={page === '寬鬆番茄鐘' ? '' : 'hidden'}>
           <PomodoroTimer
+            onTimerDisplayInfoChange={setTimerDisplayInfo}
             focusRecords={focusRecords}
             tasks={tasks}
             eventRecords={eventRecords}
