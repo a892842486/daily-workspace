@@ -5,11 +5,12 @@ import DailyChecklist from './features/daily-checklist/DailyChecklist'
 import KanbanBoard from './features/kanban/KanbanBoard'
 import FreeNotes from './features/free-notes/FreeNotes'
 import PomodoroTimer from './features/pomodoro-timer/PomodoroTimer'
+import Stopwatch from './features/stopwatch/Stopwatch'
 import type { TimerDisplayInfo } from './features/pomodoro-timer/PomodoroTimer'
 import Calendar from './features/calendar/Calendar'
 import Settings from './features/settings/Settings'
 import GlobalTimer from './components/GlobalTimer'
-import { LayoutDashboard, CalendarDays, Settings as SettingsIcon } from 'lucide-react'
+import { LayoutDashboard, CalendarDays, Settings as SettingsIcon, Timer } from 'lucide-react'
 
 import { useFocusRecords } from './features/pomodoro-timer/useFocusRecords'
 import { useDailyTitles } from './features/calendar/useDailyTitles'
@@ -164,6 +165,14 @@ function App() {
             />
 
             <button
+              onClick={() => setPage('碼表')}
+              title="碼表"
+              className="flex items-center justify-center rounded-lg p-2 transition-colors hover:bg-gray-100"
+            >
+              <Timer size={18} />
+            </button>
+
+            <button
               onClick={() => setPage('工作區')}
               title="工作區"
               className="flex items-center justify-center rounded-lg p-2 hover:bg-gray-100 transition-colors"
@@ -265,6 +274,8 @@ function App() {
             dateTimeSettings={dateTimeSettings}
             onDateTimeSettingsChange={setDateTimeSettings}
           />
+        ) : page === '碼表' ? (
+          <Stopwatch />
         ) : page === '寬鬆番茄鐘' ? (
           null
         ) : (
