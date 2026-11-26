@@ -5,6 +5,7 @@ import { RotateCcw, SkipForward, Settings } from 'lucide-react'
 import PomodoroSettings from './PomodoroSettings'
 import WorkHistory from '../work-history/WorkHistory'
 import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
+import { formatDuration } from '../../utils/formatDuration'
 import { initializeTimerAudio, playTimerSound } from './playTimerSound'
 
 import type { FocusRecord } from './FocusRecord'
@@ -21,6 +22,13 @@ const modes = [
 ] as const
 
 type TimerMode = 'focus' | 'shortBreak' | 'longBreak'
+
+// 提供給 App 的全域計時顯示資訊。
+export type TimerDisplayInfo = {
+    displayTime: string
+    modeLabel: string
+    isRunning: boolean
+}
 
 // 三種模式的時間設定型別。
 type TimerDurations = Record<TimerMode, number>
@@ -43,6 +51,7 @@ const defaultDurations: TimerDurations = {
 }
 
 type Props = {
+    onTimerDisplayInfoChange: (info: TimerDisplayInfo | null) => void
     focusRecords: FocusRecord[]
     tasks: Task[]
     eventRecords: EventRecord[]
@@ -65,6 +74,7 @@ type Props = {
 }
 
 export default function PomodoroTimer({
+    onTimerDisplayInfoChange,
     focusRecords,
     tasks,
     eventRecords,
@@ -159,17 +169,30 @@ export default function PomodoroTimer({
     // 判斷目前是否處於超時正計時。
     const isOvertime = remainingSeconds < 0
 
-    // 取得時間絕對值。
-    const displaySeconds = Math.abs(remainingSeconds)
+    // 使用共用函式格式化計時時間。
+    const displayTime = formatDuration(remainingSeconds)
 
-    // 轉換成 MM:SS 格式。
-    const minutes = String(
-        Math.floor(displaySeconds / 60)
-    ).padStart(2, '0')
+    // 回報目前番茄鐘的顯示資訊給 App。
+    useEffect(() => {
+        if (!hasStarted) {
+            onTimerDisplayInfoChange(null)
+            return
+        }
 
-    const seconds = String(
-        displaySeconds % 60
-    ).padStart(2, '0')
+        const modeLabel = modes.find(item => item.id === mode)?.label ?? ''
+
+        onTimerDisplayInfoChange({
+            displayTime,
+            modeLabel,
+            isRunning,
+        })
+    }, [
+        hasStarted,
+        mode,
+        isRunning,
+        displayTime,
+        onTimerDisplayInfoChange,
+    ])
 
     // 目前所處的循環階段。
     const currentRound = Math.min(
@@ -436,7 +459,7 @@ export default function PomodoroTimer({
                     {isOvertime && (
                         <span className="absolute right-full mr-1">+</span>
                     )}
-                    {minutes}:{seconds}
+                    {displayTime.replace(/^\+/, '')}
                 </div>
 
                 <button
