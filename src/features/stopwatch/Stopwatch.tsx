@@ -2,7 +2,11 @@
 import { useEffect, useState } from 'react'
 import { RotateCcw } from 'lucide-react'
 
-function Stopwatch() {
+type Props = {
+  onDisplayTimeChange: (displayTime: string | null) => void
+}
+
+function Stopwatch({ onDisplayTimeChange }: Props) {
   const [elapsedMs, setElapsedMs] = useState(0)
   const [startTime, setStartTime] = useState<number | null>(null)
   const [now, setNow] = useState(Date.now())
@@ -27,7 +31,40 @@ function Stopwatch() {
   const seconds = Math.floor((totalCentiseconds % 6000) / 100)
   const centiseconds = totalCentiseconds % 100
 
+  useEffect(() => {
+    if (startTime === null) {
+      onDisplayTimeChange(null)
+      return
+    }
+
+    const displayMinutes = Math.floor(currentElapsed / 60000)
+    const displaySeconds = Math.floor((currentElapsed % 60000) / 1000)
+
+    const navDisplayTime = displayMinutes >= 60
+      ? `${String(Math.floor(displayMinutes / 60)).padStart(2, '0')}:${String(displayMinutes % 60).padStart(2, '0')}:${String(displaySeconds).padStart(2, '0')}`
+      : `${String(displayMinutes).padStart(2, '0')}:${String(displaySeconds).padStart(2, '0')}`
+
+    onDisplayTimeChange(navDisplayTime)
+  }, [startTime, currentElapsed, onDisplayTimeChange])
+
   const displayTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`
+
+  // 回報碼表時間給 App，供導覽列顯示。
+  useEffect(() => {
+    if (startTime === null) {
+      onDisplayTimeChange(null)
+      return
+    }
+
+    const displayMinutes = Math.floor(currentElapsed / 60000)
+    const displaySeconds = Math.floor((currentElapsed % 60000) / 1000)
+
+    const navDisplayTime = displayMinutes >= 60
+      ? `${String(Math.floor(displayMinutes / 60)).padStart(2, '0')}:${String(displayMinutes % 60).padStart(2, '0')}:${String(displaySeconds).padStart(2, '0')}`
+      : `${String(displayMinutes).padStart(2, '0')}:${String(displaySeconds).padStart(2, '0')}`
+
+    onDisplayTimeChange(navDisplayTime)
+  }, [startTime, currentElapsed, onDisplayTimeChange])
 
   const handleStartPause = () => {
     if (startTime !== null) {

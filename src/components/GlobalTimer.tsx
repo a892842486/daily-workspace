@@ -31,5 +31,6 @@ export default function GlobalTimer({
                 {displayTime}
             </span>
         </button>
+        
     )
 }
