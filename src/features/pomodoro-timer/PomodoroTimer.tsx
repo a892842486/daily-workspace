@@ -6,10 +6,10 @@ import PomodoroSettings from './PomodoroSettings'
 import WorkHistory from '../work-history/WorkHistory'
 import { getWorkspaceDate } from '../../utils/getWorkspaceDate'
 import { formatDuration } from '../../utils/formatDuration'
-import { initializeTimerAudio, playTimerSound } from './playTimerSound'
+import { initializeTimerAudio, playTimerAlert } from './playTimerSound'
 
 import type { FocusRecord } from './FocusRecord'
-import type { TimerSound } from './playTimerSound'
+import type { TimerSound, TimerAlertMode } from './playTimerSound'
 import type { DateTimePreferences } from '../settings/dateTimePreferences'
 import type { Task } from '../kanban/TaskCard'
 import type { EventRecord } from '../event-records/EventRecord'
@@ -158,6 +158,11 @@ export default function PomodoroTimer({
         return Number(localStorage.getItem('pomodoroSoundVolume') ?? 50)
     })
 
+    // 讀取已儲存的提示音提醒方式。
+    const [alertMode, setAlertMode] = useState<TimerAlertMode>(() => {
+        return (localStorage.getItem('pomodoroAlertMode') as TimerAlertMode) ?? '3'
+    })
+
     // 記錄目前所屬的工作區日期。
     const [workspaceDate, setWorkspaceDate] = useState(
         () => getWorkspaceDate()
@@ -165,6 +170,24 @@ export default function PomodoroTimer({
 
     // 記錄本次計時是否已播放結束提示音。
     const hasPlayedSound = useRef(remainingSeconds <= 0)
+
+    // 控制目前正在播放的提醒音。
+    const alertStopRef = useRef<(() => void) | null>(null)
+    const alertTimeoutRef = useRef<number | null>(null)
+    const [isAlertPlaying, setIsAlertPlaying] = useState(false)
+
+    // 停止目前提醒音。
+    const stopAlert = useCallback(() => {
+        alertStopRef.current?.()
+        alertStopRef.current = null
+
+        if (alertTimeoutRef.current !== null) {
+            window.clearTimeout(alertTimeoutRef.current)
+            alertTimeoutRef.current = null
+        }
+
+        setIsAlertPlaying(false)
+    }, [])
 
     // 判斷目前是否處於超時正計時。
     const isOvertime = remainingSeconds < 0
@@ -249,7 +272,11 @@ export default function PomodoroTimer({
             'pomodoroSoundVolume',
             String(soundVolume)
         )
-    }, [soundEnabled, timerSound, soundVolume])
+        localStorage.setItem(
+            'pomodoroAlertMode',
+            alertMode
+        )
+    }, [soundEnabled, timerSound, soundVolume, alertMode])
 
     // 自動儲存時間設定。
     useEffect(() => {
@@ -316,11 +343,17 @@ export default function PomodoroTimer({
         hasPlayedSound.current = true
 
         if (soundEnabled) {
-            void playTimerSound(
+            setIsAlertPlaying(true)
+
+            alertStopRef.current = playTimerAlert(
                 timerSound,
                 soundVolume,
-                3
-            ).catch(console.warn)
+                alertMode,
+                () => {
+                    alertStopRef.current = null
+                    setIsAlertPlaying(false)
+                }
+            )
         }
     }, [
         hasStarted,
@@ -329,6 +362,7 @@ export default function PomodoroTimer({
         soundEnabled,
         timerSound,
         soundVolume,
+        alertMode,
     ])
 
     // 切換計時模式。
@@ -379,6 +413,7 @@ export default function PomodoroTimer({
 
     // 重置目前模式的計時器。
     const resetTimer = () => {
+        stopAlert()
         settleFocus()
 
         setIsSettingsOpen(false)
@@ -390,6 +425,7 @@ export default function PomodoroTimer({
 
     // 依照番茄鐘循環進入下一階段。
     const nextPhase = useCallback(() => {
+        stopAlert()
         settleFocus()
 
         if (mode === 'focus') {
@@ -407,10 +443,12 @@ export default function PomodoroTimer({
 
             changeMode('focus')
         }
-    }, [mode, focusCount, changeMode, settleFocus])
+    }, [mode, focusCount, changeMode, settleFocus, stopAlert])
 
     // 開始、暫停或繼續計時。
     const toggleTimer = () => {
+        stopAlert()
+
         // 透過使用者操作解除瀏覽器的音訊播放限制。
         void initializeTimerAudio().catch(console.warn)
 
@@ -435,7 +473,7 @@ export default function PomodoroTimer({
     }
 
     return (
-        <div className="flex flex-col items-center gap-8 py-12">
+        <div className="flex flex-col items-center gap-6 py-2">
             {/* 模式切換 */}
             <div className="flex gap-6">
                 {modes.map(item => (
@@ -501,6 +539,16 @@ export default function PomodoroTimer({
                             : '開始'}
                 </button>
 
+                {isAlertPlaying && (
+                    <button
+                        type="button"
+                        onClick={stopAlert}
+                        className="cursor-pointer rounded-lg bg-red-100 px-3 py-2 text-sm text-red-700 transition-colors hover:bg-red-200"
+                    >
+                        停止提醒
+                    </button>
+                )}
+
                 <button
                     type="button"
                     onClick={nextPhase}
@@ -523,6 +571,8 @@ export default function PomodoroTimer({
                     onTimerSoundChange={setTimerSound}
                     soundVolume={soundVolume}
                     onSoundVolumeChange={setSoundVolume}
+                    alertMode={alertMode}
+                    onAlertModeChange={setAlertMode}
                 />
             )}
 

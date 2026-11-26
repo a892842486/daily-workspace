@@ -84,7 +84,7 @@ function Stopwatch({ onDisplayTimeChange }: Props) {
 
   return (
     <div className="mx-auto max-w-md">
-      <div className="mb-8 text-center">
+      <div className="relative mb-8 flex h-28 items-center justify-center">
         <div className="text-7xl font-bold tabular-nums tracking-tight text-gray-800">
           {displayTime}
         </div>

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Volume2, VolumeX, Play } from 'lucide-react'
 import { timerSounds, playTimerSound } from './playTimerSound'
-import type { TimerSound } from './playTimerSound'
+import type { TimerSound, TimerAlertMode } from './playTimerSound'
 
 type TimerDurations = {
     focus: number
@@ -19,6 +19,8 @@ type Props = {
     onTimerSoundChange: (sound: TimerSound) => void
     soundVolume: number
     onSoundVolumeChange: (volume: number) => void
+    alertMode: TimerAlertMode
+    onAlertModeChange: (mode: TimerAlertMode) => void
 }
 
 // 三種預設方案。
@@ -149,6 +151,8 @@ export default function PomodoroSettings({
     onTimerSoundChange,
     soundVolume,
     onSoundVolumeChange,
+    alertMode,
+    onAlertModeChange,
 }: Props) {
     // 更新指定模式的分鐘與秒數。
     const updateTime = (
@@ -308,6 +312,30 @@ export default function PomodoroSettings({
                             <span className="w-10 text-right tabular-nums text-gray-500">
                                 {soundVolume}%
                             </span>
+                        </div>
+
+                        {/* 提醒方式 */}
+                        <div className="flex items-center gap-3 text-sm">
+                            <label htmlFor="timer-alert-mode">
+                                提醒方式
+                            </label>
+
+                            <select
+                                id="timer-alert-mode"
+                                value={alertMode}
+                                onChange={e =>
+                                    onAlertModeChange(e.target.value as TimerAlertMode)
+                                }
+                                className="min-w-0 flex-1 cursor-pointer rounded-md border border-gray-200 px-3 py-2 outline-none focus:border-blue-500"
+                            >
+                                <option value="1">響鈴 1 次</option>
+                                <option value="2">響鈴 2 次</option>
+                                <option value="3">響鈴 3 次</option>
+                                <option value="4">響鈴 4 次</option>
+                                <option value="5">響鈴 5 次</option>
+                                <option value="10s">響鈴 10 秒</option>
+                                <option value="30s">響鈴 30 秒</option>
+                            </select>
                         </div>
 
                         {/* 試聽提示音 */}

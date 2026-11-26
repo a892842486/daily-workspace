@@ -1,7 +1,14 @@
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { RotateCcw, Settings, Check, X } from 'lucide-react'
-import { initializeTimerAudio, playTimerSound } from '../pomodoro-timer/playTimerSound'
+import {
+    initializeTimerAudio,
+    playTimerSound,
+    playTimerAlert,
+    timerSounds,
+} from '../pomodoro-timer/playTimerSound'
+
+import type { TimerSound, TimerAlertMode } from '../pomodoro-timer/playTimerSound'
 
 const STORAGE_KEY = 'countdownPresets'
 
@@ -21,6 +28,26 @@ function Countdown({ onDisplayTimeChange }: Props) {
     const [now, setNow] = useState(Date.now())
     const [overtimeStartTime, setOvertimeStartTime] = useState<number | null>(null)
     const [isEditing, setIsEditing] = useState(false)
+    // 提示音設定。
+    const [soundEnabled, setSoundEnabled] = useState(() => {
+        return localStorage.getItem('countdownSoundEnabled') !== 'false'
+    })
+
+    const [timerSound, setTimerSound] = useState<TimerSound>(() => {
+        return (localStorage.getItem('countdownTimerSound') as TimerSound) ?? 'soft'
+    })
+
+    const [soundVolume, setSoundVolume] = useState(() => {
+        return Number(localStorage.getItem('countdownSoundVolume') ?? 50)
+    })
+
+    const [alertMode, setAlertMode] = useState<TimerAlertMode>(() => {
+        return (localStorage.getItem('countdownAlertMode') as TimerAlertMode) ?? '3'
+    })
+
+    // 提醒音播放狀態。
+    const alertStopRef = useRef<(() => void) | null>(null)
+    const [isAlertPlaying, setIsAlertPlaying] = useState(false)
     const [isAdding, setIsAdding] = useState(false)
     const [showHours, setShowHours] = useState(false)
     const [isTimeEditing, setIsTimeEditing] = useState(false)
@@ -35,6 +62,14 @@ function Countdown({ onDisplayTimeChange }: Props) {
     useEffect(() => {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(presets))
     }, [presets])
+
+    // 自動儲存提示音設定。
+    useEffect(() => {
+        localStorage.setItem('countdownSoundEnabled', String(soundEnabled))
+        localStorage.setItem('countdownTimerSound', timerSound)
+        localStorage.setItem('countdownSoundVolume', String(soundVolume))
+        localStorage.setItem('countdownAlertMode', alertMode)
+    }, [soundEnabled, timerSound, soundVolume, alertMode])
 
     // 運行中時，以時間戳記更新倒數。
     useEffect(() => {
@@ -54,8 +89,21 @@ function Countdown({ onDisplayTimeChange }: Props) {
         setRemainingSeconds(0)
         setEndTime(null)
         setOvertimeStartTime(endTime)
-        playTimerSound()
-    }, [now, endTime])
+
+        if (soundEnabled) {
+            setIsAlertPlaying(true)
+
+            alertStopRef.current = playTimerAlert(
+                timerSound,
+                soundVolume,
+                alertMode,
+                () => {
+                    alertStopRef.current = null
+                    setIsAlertPlaying(false)
+                }
+            )
+        }
+    }, [now, endTime, soundEnabled, timerSound, soundVolume, alertMode])
 
     const currentSeconds = endTime !== null
         ? Math.max(0, Math.ceil((endTime - now) / 1000))
@@ -95,7 +143,16 @@ function Countdown({ onDisplayTimeChange }: Props) {
         onDisplayTimeChange,
     ])
 
+    // 停止目前的提醒音。
+    const stopAlert = useCallback(() => {
+        alertStopRef.current?.()
+        alertStopRef.current = null
+        setIsAlertPlaying(false)
+    }, [])
+
     const handleStartPause = async () => {
+        stopAlert()
+
         if (isEditing || isAdding) return
 
         if (isTimeEditing) {
@@ -129,6 +186,8 @@ function Countdown({ onDisplayTimeChange }: Props) {
         }
     }
     const handleReset = () => {
+        stopAlert()
+
         setEndTime(null)
         setOvertimeStartTime(null)
         setRemainingSeconds(selectedSeconds)
@@ -145,6 +204,8 @@ function Countdown({ onDisplayTimeChange }: Props) {
     }
 
     const handleSelectPreset = (duration: number) => {
+        stopAlert()
+
         setEndTime(null)
         setOvertimeStartTime(null)
         setSelectedSeconds(duration)
@@ -294,7 +355,17 @@ function Countdown({ onDisplayTimeChange }: Props) {
                             : '開始'}
                 </button>
 
-                <div className="h-11 w-11" />
+                {isAlertPlaying ? (
+                    <button
+                        type="button"
+                        onClick={stopAlert}
+                        className="cursor-pointer rounded-lg bg-red-100 px-3 py-2 text-sm text-red-700 transition-colors hover:bg-red-200"
+                    >
+                        停止提醒
+                    </button>
+                ) : (
+                    <div className="h-11 w-11" />
+                )}
             </div>
 
             {/* 預設時間 */}
@@ -327,9 +398,14 @@ function Countdown({ onDisplayTimeChange }: Props) {
                     </div>
                 ))}
 
-                {/* 只有點齒輪進入編輯模式時，才會看到小時選項 */}
-                {isEditing && (
-                    <div className="mt-3 w-full flex justify-center">
+            </div>
+
+            {/* 提示音設定 */}
+            {isEditing && (
+                <div className="mt-6 rounded-xl border border-gray-200 p-4">
+
+                    {/* 顯示小時 */}
+                    <div className="mb-4">
                         <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-600">
                             <input
                                 type="checkbox"
@@ -339,8 +415,108 @@ function Countdown({ onDisplayTimeChange }: Props) {
                             顯示小時
                         </label>
                     </div>
-                )}
-            </div>
+
+                    <div className="mb-4 flex items-center justify-between">
+                        <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
+                            <input
+                                type="checkbox"
+                                checked={soundEnabled}
+                                onChange={e => {
+                                    const enabled = e.target.checked
+                                    setSoundEnabled(enabled)
+
+                                    if (!enabled) {
+                                        stopAlert()
+                                    }
+                                }}
+                            />
+                            計時結束提示音
+                        </label>
+                    </div>
+
+                    {soundEnabled && (
+                        <div className="flex flex-col gap-4">
+                            {/* 音色 */}
+                            <div className="flex items-center gap-3 text-sm">
+                                <label htmlFor="countdown-sound" className="shrink-0">
+                                    提示音
+                                </label>
+
+                                <select
+                                    id="countdown-sound"
+                                    value={timerSound}
+                                    onChange={e => setTimerSound(e.target.value as TimerSound)}
+                                    className="min-w-0 flex-1 cursor-pointer rounded-md border border-gray-200 px-3 py-2 outline-none focus:border-blue-500"
+                                >
+                                    {timerSounds.map(sound => (
+                                        <option key={sound.id} value={sound.id}>
+                                            {sound.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* 音量 */}
+                            <div className="flex items-center gap-3 text-sm">
+                                <label htmlFor="countdown-volume" className="shrink-0">
+                                    音量
+                                </label>
+
+                                <input
+                                    id="countdown-volume"
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    value={soundVolume}
+                                    onChange={e => setSoundVolume(Number(e.target.value))}
+                                    className="min-w-0 flex-1 cursor-pointer"
+                                />
+
+                                <span className="w-10 text-right tabular-nums">
+                                    {soundVolume}%
+                                </span>
+                            </div>
+
+                            {/* 提醒方式 */}
+                            <div className="flex items-center gap-3 text-sm">
+                                <label htmlFor="countdown-alert-mode" className="shrink-0">
+                                    提醒方式
+                                </label>
+
+                                <select
+                                    id="countdown-alert-mode"
+                                    value={alertMode}
+                                    onChange={e => setAlertMode(e.target.value as TimerAlertMode)}
+                                    className="min-w-0 flex-1 cursor-pointer rounded-md border border-gray-200 px-3 py-2 outline-none focus:border-blue-500"
+                                >
+                                    <option value="1">響鈴 1 次</option>
+                                    <option value="2">響鈴 2 次</option>
+                                    <option value="3">響鈴 3 次</option>
+                                    <option value="4">響鈴 4 次</option>
+                                    <option value="5">響鈴 5 次</option>
+                                    <option value="10s">響鈴 10 秒</option>
+                                    <option value="30s">響鈴 30 秒</option>
+                                </select>
+                            </div>
+
+                            {/* 試聽 */}
+                            <div className="flex justify-center">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        void initializeTimerAudio()
+                                            .then(() => playTimerSound(timerSound, soundVolume, 1))
+                                            .catch(console.warn)
+                                    }}
+                                    className="cursor-pointer rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100"
+                                >
+                                    ▷ 試聽
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* 新增倒數 */}
             <div className="mt-4">
