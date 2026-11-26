@@ -6,11 +6,21 @@ import KanbanBoard from './features/kanban/KanbanBoard'
 import FreeNotes from './features/free-notes/FreeNotes'
 import PomodoroTimer from './features/pomodoro-timer/PomodoroTimer'
 import Stopwatch from './features/stopwatch/Stopwatch'
+import Countdown from './features/countdown/Countdown'
 import type { TimerDisplayInfo } from './features/pomodoro-timer/PomodoroTimer'
 import Calendar from './features/calendar/Calendar'
-import Settings from './features/settings/Settings'
+import Settings, {
+  HIDE_STOPWATCH_KEY,
+  HIDE_COUNTDOWN_KEY,
+} from './features/settings/Settings'
 import GlobalTimer from './components/GlobalTimer'
-import { LayoutDashboard, CalendarDays, Settings as SettingsIcon, Timer } from 'lucide-react'
+import {
+  LayoutDashboard,
+  CalendarDays,
+  Settings as SettingsIcon,
+  Timer,
+  Clock as StopwatchIcon,
+} from 'lucide-react'
 
 import { useFocusRecords } from './features/pomodoro-timer/useFocusRecords'
 import { useDailyTitles } from './features/calendar/useDailyTitles'
@@ -52,6 +62,23 @@ function App() {
   // 接收番茄鐘回報的全域計時顯示資訊。
   const [timerDisplayInfo, setTimerDisplayInfo] =
     useState<TimerDisplayInfo | null>(null)
+
+  // 接收碼表回報的時間。
+  const [stopwatchDisplayTime, setStopwatchDisplayTime] =
+    useState<string | null>(null)
+
+  // 接收倒數計時回報的時間。
+  const [countdownDisplayTime, setCountdownDisplayTime] =
+    useState<string | null>(null)
+
+  // 計時器隱藏設定。
+  const [hideStopwatch, setHideStopwatch] = useState(() => {
+    return localStorage.getItem(HIDE_STOPWATCH_KEY) === 'true'
+  })
+
+  const [hideCountdown, setHideCountdown] = useState(() => {
+    return localStorage.getItem(HIDE_COUNTDOWN_KEY) === 'true'
+  })
 
   // 根據目前時間與換日設定，取得當前工作區日期。
   const workspaceDate = getWorkspaceDate(now.getTime())
@@ -128,17 +155,48 @@ function App() {
     )
   }, [dateTimeSettings])
 
-  // 根據全域計時資訊更新瀏覽器分頁標題。
+  // 儲存計時器隱藏設定。
   useEffect(() => {
-    if (!timerDisplayInfo) {
-      document.title = 'Daily Workspace'
-      return
+    localStorage.setItem(HIDE_STOPWATCH_KEY, String(hideStopwatch))
+  }, [hideStopwatch])
+
+  useEffect(() => {
+    localStorage.setItem(HIDE_COUNTDOWN_KEY, String(hideCountdown))
+  }, [hideCountdown])
+
+  // 隱藏計時器時，清除導航列時間。
+  useEffect(() => {
+    if (hideStopwatch) {
+      setStopwatchDisplayTime(null)
+    }
+  }, [hideStopwatch])
+
+  useEffect(() => {
+    if (hideCountdown) {
+      setCountdownDisplayTime(null)
+    }
+  }, [hideCountdown])
+
+  // 將三種計時器組合成瀏覽器分頁標題。
+  useEffect(() => {
+    const timerParts: string[] = []
+
+    if (timerDisplayInfo) {
+      timerParts.push(timerDisplayInfo.displayTime)
     }
 
-    const status = timerDisplayInfo.isRunning ? '' : '（暫停）'
+    if (stopwatchDisplayTime) {
+      timerParts.push(stopwatchDisplayTime)
+    }
 
-    document.title = `${timerDisplayInfo.displayTime} · ${timerDisplayInfo.modeLabel}${status}`
-  }, [timerDisplayInfo])
+    if (countdownDisplayTime) {
+      timerParts.push(countdownDisplayTime)
+    }
+
+    document.title = timerParts.length > 0
+      ? timerParts.join(' | ')
+      : '٩(^ᴗ^)۶'
+  }, [timerDisplayInfo, stopwatchDisplayTime, countdownDisplayTime])
 
   return (
     <div className="min-h-screen bg-white text-gray-800">
@@ -164,13 +222,38 @@ function App() {
               onClick={() => setPage('寬鬆番茄鐘')}
             />
 
-            <button
-              onClick={() => setPage('碼表')}
-              title="碼表"
-              className="flex items-center justify-center rounded-lg p-2 transition-colors hover:bg-gray-100"
-            >
-              <Timer size={18} />
-            </button>
+            {!hideStopwatch && (
+              <button
+                onClick={() => setPage('碼表')}
+                title="碼表"
+                className="flex items-center justify-center gap-1 rounded-lg px-2 py-2 transition-colors hover:bg-gray-100"
+              >
+                <StopwatchIcon size={18} />
+                {stopwatchDisplayTime && (
+                  <span className="text-sm font-medium tabular-nums">
+                    {stopwatchDisplayTime}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {!hideCountdown && (
+              <button
+                onClick={() => setPage('倒數計時')}
+                title="倒數計時"
+                className="flex items-center justify-center gap-1 rounded-lg px-2 py-2 transition-colors hover:bg-gray-100"
+              >
+                <Timer size={18} />
+                {countdownDisplayTime && (
+                  <span className={`text-sm font-medium tabular-nums ${countdownDisplayTime.startsWith('+')
+                    ? 'text-green-600'
+                    : ''
+                    }`}>
+                    {countdownDisplayTime}
+                  </span>
+                )}
+              </button>
+            )}
 
             <button
               onClick={() => setPage('工作區')}
@@ -273,13 +356,37 @@ function App() {
           <Settings
             dateTimeSettings={dateTimeSettings}
             onDateTimeSettingsChange={setDateTimeSettings}
+            hideStopwatch={hideStopwatch}
+            hideCountdown={hideCountdown}
+            onHideStopwatchChange={setHideStopwatch}
+            onHideCountdownChange={setHideCountdown}
           />
         ) : page === '碼表' ? (
-          <Stopwatch />
+          null
+        ) : page === '倒數計時' ? (
+          null
         ) : page === '寬鬆番茄鐘' ? (
           null
         ) : (
           <h1 className="text-2xl font-bold">{page}</h1>
+        )}
+
+        {/* 碼表持續掛載，切換頁面時僅隱藏畫面。 */}
+        {!hideStopwatch && (
+          <div className={page === '碼表' ? '' : 'hidden'}>
+            <Stopwatch
+              onDisplayTimeChange={setStopwatchDisplayTime}
+            />
+          </div>
+        )}
+
+        {/* 倒數計時持續掛載，切換頁面時僅隱藏畫面。 */}
+        {!hideCountdown && (
+          <div className={page === '倒數計時' ? '' : 'hidden'}>
+            <Countdown
+              onDisplayTimeChange={setCountdownDisplayTime}
+            />
+          </div>
         )}
 
         {/* 番茄鐘持續掛載，切換頁面時僅隱藏畫面。 */}

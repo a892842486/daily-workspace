@@ -4,15 +4,24 @@ import DateTimeSettings from './DateTimeSettings'
 import type { DateTimePreferences } from './dateTimePreferences'
 
 export const RESET_HOUR_KEY = 'dailyChecklistResetHour'
+export const HIDE_STOPWATCH_KEY = 'hideStopwatch'
+export const HIDE_COUNTDOWN_KEY = 'hideCountdown'
 
 type Props = {
   dateTimeSettings: DateTimePreferences
   onDateTimeSettingsChange: (settings: DateTimePreferences) => void
+  hideStopwatch: boolean
+  hideCountdown: boolean
+  onHideStopwatchChange: (hidden: boolean) => void
+  onHideCountdownChange: (hidden: boolean) => void
 }
-
 export default function Settings({
   dateTimeSettings,
   onDateTimeSettingsChange,
+  hideStopwatch,
+  hideCountdown,
+  onHideStopwatchChange,
+  onHideCountdownChange,
 }: Props) {
   const [resetHour, setResetHour] = useState(() => {
     return Number(localStorage.getItem(RESET_HOUR_KEY) ?? 4)
@@ -25,7 +34,36 @@ export default function Settings({
 
   return (
     <section>
-      <h1 className="mb-6 text-2xl font-bold">設定</h1>
+      {/* 計時器顯示設定 */}
+      <div className="rounded-lg border border-gray-200 p-4">
+        <h2 className="mb-3 font-medium">計時器</h2>
+
+        <div className="flex flex-col gap-3">
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={hideStopwatch}
+              onChange={e => onHideStopwatchChange(e.target.checked)}
+            />
+            隱藏碼表
+          </label>
+
+          <label className="flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={hideCountdown}
+              onChange={e => onHideCountdownChange(e.target.checked)}
+            />
+            隱藏倒數計時
+          </label>
+        </div>
+
+        <p className="mt-3 text-sm text-gray-500">
+          隱藏時會移除導航列按鈕並重置計時器。
+        </p>
+      </div>
+
+      {/* 每日打卡重置時間 */}
 
       <div className="flex max-w-2xl flex-col gap-6">
         {/* 每日打卡重置時間 */}

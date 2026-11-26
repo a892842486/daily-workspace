@@ -129,7 +129,6 @@ export default function Calendar({
 
     return (
         <section className="mx-auto w-full max-w-5xl space-y-6">
-            <h1 className="text-2xl font-bold">日曆</h1>
 
             {/* 月份切換 */}
             <div className="flex items-center gap-3">
