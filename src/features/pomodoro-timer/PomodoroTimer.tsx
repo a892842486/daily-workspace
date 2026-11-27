@@ -39,6 +39,7 @@ type TimerState = {
     remainingSeconds: number
     isRunning: boolean
     endTime: number | null
+    startTime: number | null
     hasStarted: boolean
     focusCount: number
 }
@@ -123,6 +124,11 @@ export default function PomodoroTimer({
     // 記錄預計結束計時的時間戳記。
     const [endTime, setEndTime] = useState<number | null>(
         savedState?.endTime ?? null
+    )
+
+    // 紀錄開始時間
+    const [startTime, setStartTime] = useState<number | null>(
+        savedState?.startTime ?? null
     )
 
     // 記錄目前階段是否曾經開始計時。
@@ -293,10 +299,10 @@ export default function PomodoroTimer({
             remainingSeconds,
             isRunning,
             endTime,
+            startTime,
             hasStarted,
             focusCount,
         }
-
         localStorage.setItem(
             'pomodoroTimerState',
             JSON.stringify(state)
@@ -306,6 +312,7 @@ export default function PomodoroTimer({
         remainingSeconds,
         isRunning,
         endTime,
+        startTime,
         hasStarted,
         focusCount,
     ])
@@ -373,6 +380,7 @@ export default function PomodoroTimer({
         setIsRunning(false)
         setEndTime(null)
         setHasStarted(false)
+        setStartTime(null)
         setMode(nextMode)
         setRemainingSeconds(durations[nextMode])
     }, [mode, durations])
@@ -385,7 +393,7 @@ export default function PomodoroTimer({
 
     // 結算本次專注時間及內容。
     const settleFocus = useCallback(() => {
-        if (mode !== 'focus' || !hasStarted) return
+        if (mode !== 'focus' || !hasStarted || startTime === null) return
 
         const remaining = isRunning && endTime !== null
             ? Math.ceil((endTime - Date.now()) / 1000)
@@ -398,13 +406,14 @@ export default function PomodoroTimer({
 
         if (elapsedSeconds === 0) return
 
-        addFocusRecord(Date.now(), elapsedSeconds, focusNote)
+        addFocusRecord(startTime, elapsedSeconds, focusNote)
         setFocusNote('')
     }, [
         mode,
         hasStarted,
         isRunning,
         endTime,
+        startTime,
         remainingSeconds,
         durations.focus,
         focusNote,
@@ -420,6 +429,7 @@ export default function PomodoroTimer({
         setIsRunning(false)
         setEndTime(null)
         setHasStarted(false)
+        setStartTime(null)
         setRemainingSeconds(durations[mode])
     }
 
@@ -467,6 +477,10 @@ export default function PomodoroTimer({
             setEndTime(null)
         } else {
             // 開始或繼續計時。
+            if (startTime === null) {
+                setStartTime(Date.now())
+            }
+
             setEndTime(Date.now() + remainingSeconds * 1000)
             setIsRunning(true)
         }
