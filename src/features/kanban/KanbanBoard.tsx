@@ -58,7 +58,7 @@ export default function KanbanBoard({
               const taskId = e.dataTransfer.getData('text/plain')
               updateTaskStatus(taskId, status)
             }}
-            className="min-h-60 rounded-lg border border-gray-200 bg-gray-50 p-4"
+            className="min-h-60 rounded-lg border border-border bg-surface-secondary p-4"
           >
             <h2 className="mb-4 font-bold">{status}</h2>
 

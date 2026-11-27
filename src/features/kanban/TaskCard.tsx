@@ -50,8 +50,8 @@ export default function TaskCard({
       }}
       onDragEnd={onDragEnd}
       className={`relative mb-2 rounded-lg border p-3 text-sm transition-colors ${isDragOver
-          ? 'border-blue-500 bg-blue-50'
-          : 'border-gray-200 bg-white'
+        ? 'border-accent bg-surface-secondary'
+        : 'border-border bg-surface'
         }`}
     >
       {/* 刪除任務按鈕 */}
@@ -59,7 +59,7 @@ export default function TaskCard({
         onClick={() => onDelete(task.id)}
         aria-label="刪除任務"
         title="刪除任務"
-        className="absolute top-2 right-3 cursor-pointer text-lg text-gray-400 hover:text-gray-800"
+        className="absolute top-2 right-3 cursor-pointer text-lg text-text-secondary hover:text-danger"
       >
         ×
       </button>

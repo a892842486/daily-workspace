@@ -34,6 +34,48 @@ import {
 import { formatDateTime } from './utils/formatTime'
 import { getWorkspaceDate } from './utils/getWorkspaceDate'
 
+type Theme =
+  | 'classic-night'
+  | 'classic-day'
+  | 'midnight-blue'
+  | 'forest'
+  | 'warm-sand'
+  | 'plum-night'
+  | 'ocean-teal'
+  | 'slate'
+  | 'lavender-mist'
+  | 'sage-light'
+
+const THEME_KEY = 'workspaceTheme'
+
+// 字體
+type Font =
+  | 'system'
+  | 'noto-sans'
+  | 'noto-serif'
+  | 'open-huninn'
+  | 'iansui'
+  | 'gensen-rounded'
+  | 'jason-handwriting-1'
+  | 'jason-handwriting-6'
+  | 'jason-handwriting-7'
+  | 'chenyu-luoyan'
+
+const FONT_KEY = 'workspaceFont'
+
+const fontFamilies: Record<Font, string> = {
+  system: 'inherit',
+  'noto-sans': '"Noto Sans TC", sans-serif',
+  'noto-serif': '"Noto Serif TC", serif',
+  'open-huninn': '"Open Huninn", sans-serif',
+  iansui: '"Iansui", sans-serif',
+  'gensen-rounded': '"GenSenRounded", sans-serif',
+  'jason-handwriting-1': '"JasonHandwriting1", sans-serif',
+  'jason-handwriting-6': '"JasonHandwriting6", sans-serif',
+  'jason-handwriting-7': '"JasonHandwriting7", sans-serif',
+  'chenyu-luoyan': '"ChenYuLuoyan", sans-serif',
+}
+
 function App() {
   // useState：管理 React 狀態，狀態改變時會重新渲染畫面。
   // [狀態, 更新函式] = useState(初始值)
@@ -42,12 +84,6 @@ function App() {
   // 使用 () => ... 延遲初始化，避免每次渲染都重新讀取 localStorage。
   const [page, setPage] = useState(() => {
     return localStorage.getItem('page') || '工作區'
-  })
-
-  // localStorage 只儲存字串，因此要將 'false' 轉換成布林判斷。
-  // 沒有紀錄時預設展開導覽列。
-  const [isNavOpen, setIsNavOpen] = useState(() => {
-    return localStorage.getItem('isNavOpen') !== 'false'
   })
 
   // 工作區內部頁籤：工作代辦／自由便籤。
@@ -120,16 +156,63 @@ function App() {
     deleteEventRecord,
   } = useEventRecords()
 
+  // Theme State
+  const [theme, setTheme] = useState<Theme>(() => {
+    const saved = localStorage.getItem(THEME_KEY)
+
+    if (
+      saved === 'classic-day' ||
+      saved === 'midnight-blue' ||
+      saved === 'forest' ||
+      saved === 'warm-sand' ||
+      saved === 'plum-night' ||
+      saved === 'ocean-teal' ||
+      saved === 'slate' ||
+      saved === 'lavender-mist' ||
+      saved === 'sage-light'
+    ) {
+      return saved
+    }
+
+    return 'classic-night'
+  })
+
+  // Font State
+  const [font, setFont] = useState<Font>(() => {
+    const saved = localStorage.getItem(FONT_KEY)
+
+    if (
+      saved === 'noto-sans' ||
+      saved === 'noto-serif' ||
+      saved === 'open-huninn' ||
+      saved === 'iansui' ||
+      saved === 'gensen-rounded' ||
+      saved === 'jason-handwriting-1' ||
+      saved === 'jason-handwriting-6' ||
+      saved === 'jason-handwriting-7' ||
+      saved === 'chenyu-luoyan'
+    ) {
+      return saved
+    }
+
+    return 'system'
+  })
+
+  // 自動儲存主題
+  useEffect(() => {
+    localStorage.setItem(THEME_KEY, theme)
+  }, [theme])
+
+  // 自動儲存字體
+  useEffect(() => {
+    localStorage.setItem(FONT_KEY, font)
+  }, [font])
+
   // useEffect：處理 React 渲染後需要執行的副作用。
   // [page]：當 page 改變時，將最新頁面儲存到 localStorage。
   useEffect(() => {
     localStorage.setItem('page', page)
   }, [page])
-
-  // String()：將 Boolean 轉成字串，供 localStorage 儲存。
-  useEffect(() => {
-    localStorage.setItem('isNavOpen', String(isNavOpen))
-  }, [isNavOpen])
 
   // 當工作區頁籤改變時，儲存到 localStorage。
   useEffect(() => {
@@ -199,92 +282,89 @@ function App() {
   }, [timerDisplayInfo, stopwatchDisplayTime, countdownDisplayTime])
 
   return (
-    <div className="min-h-screen bg-white text-gray-800">
+    <div
+      data-theme={theme}
+      style={{ fontFamily: fontFamilies[font] }}
+      className="min-h-screen bg-background text-text-primary"
+    >
       {/* 頂部導覽列 */}
-      <nav className="flex items-center gap-4 border-b border-gray-200 p-4">
-        {/* !isNavOpen：反轉 Boolean，控制導覽列展開／收合。 */}
-        <button
-          onClick={() => setIsNavOpen(!isNavOpen)}
-          aria-label={isNavOpen ? '收合導覽列' : '展開導覽列'}
-          aria-expanded={isNavOpen}
-          className="cursor-pointer text-gray-500 hover:text-gray-900"
-        >
-          {isNavOpen ? '←' : '→'}
-        </button>
+      <nav className="flex items-center gap-4 border-b border-border p-4">
+        <div className="flex flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap">
+          {/* GlobalTimer */}
+          <GlobalTimer
+            label="🍅"
+            displayTime={timerDisplayInfo?.displayTime ?? '--:--'}
+            isRunning={timerDisplayInfo?.isRunning ?? false}
+            onClick={() => setPage('寬鬆番茄鐘')}
+          />
 
-        {/* 條件渲染：isNavOpen 為 true 才顯示頁面按鈕。 */}
-        {isNavOpen && (
-          <div className="flex flex-wrap items-center gap-2">
-            <GlobalTimer
-              label="🍅"
-              displayTime={timerDisplayInfo?.displayTime ?? '--:--'}
-              isRunning={timerDisplayInfo?.isRunning ?? false}
-              onClick={() => setPage('寬鬆番茄鐘')}
-            />
-
-            {!hideStopwatch && (
-              <button
-                onClick={() => setPage('碼表')}
-                title="碼表"
-                className="flex items-center justify-center gap-1 rounded-lg px-2 py-2 transition-colors hover:bg-gray-100"
-              >
-                <StopwatchIcon size={18} />
-                {stopwatchDisplayTime && (
-                  <span className="text-sm font-medium tabular-nums">
-                    {stopwatchDisplayTime}
-                  </span>
-                )}
-              </button>
-            )}
-
-            {!hideCountdown && (
-              <button
-                onClick={() => setPage('倒數計時')}
-                title="倒數計時"
-                className="flex items-center justify-center gap-1 rounded-lg px-2 py-2 transition-colors hover:bg-gray-100"
-              >
-                <Timer size={18} />
-                {countdownDisplayTime && (
-                  <span className={`text-sm font-medium tabular-nums ${countdownDisplayTime.startsWith('+')
-                    ? 'text-green-600'
-                    : ''
-                    }`}>
-                    {countdownDisplayTime}
-                  </span>
-                )}
-              </button>
-            )}
-
+          {/* Stopwatch */}
+          {!hideStopwatch && (
             <button
-              onClick={() => setPage('工作區')}
-              title="工作區"
-              className="flex items-center justify-center rounded-lg p-2 hover:bg-gray-100 transition-colors"
+              onClick={() => setPage('碼表')}
+              title="碼表"
+              className="flex items-center justify-center gap-1 rounded-lg px-2 py-2 transition-colors hover:bg-surface-secondary"
             >
-              <LayoutDashboard size={18} />
+              <StopwatchIcon size={18} />
+              {stopwatchDisplayTime && (
+                <span className="text-sm font-medium tabular-nums">
+                  {stopwatchDisplayTime}
+                </span>
+              )}
             </button>
+          )}
 
+          {/* Countdown */}
+          {!hideCountdown && (
             <button
-              onClick={() => setPage('日曆')}
-              title="日歷"
-              className="flex items-center justify-center rounded-lg p-2 transition-colors hover:bg-gray-100"
+              onClick={() => setPage('倒數計時')}
+              title="倒數計時"
+              className="flex items-center justify-center gap-1 rounded-lg px-2 py-2 transition-colors hover:bg-surface-secondary"
             >
-              <CalendarDays size={18} />
+              <Timer size={18} />
+              {countdownDisplayTime && (
+                <span className={`text-sm font-medium tabular-nums ${countdownDisplayTime.startsWith('+')
+                  ? 'text-success'
+                  : ''
+                  }`}>
+                  {countdownDisplayTime}
+                </span>
+              )}
             </button>
+          )}
 
-            <button
-              onClick={() => setPage('設定')}
-              title="設定"
-              className="flex items-center justify-center rounded-lg p-2 transition-colors hover:bg-gray-100"
+          {/* Workspace */}
+          <button
+            onClick={() => setPage('工作區')}
+            title="工作區"
+            className="flex items-center justify-center rounded-lg p-2 hover:bg-surface-secondary transition-colors"
+          >
+            <LayoutDashboard size={18} />
+          </button>
 
-            >
-              <SettingsIcon size={18} />
-            </button>
-          </div>
-        )}
+          {/* Calendar */}
+          <button
+            onClick={() => setPage('日曆')}
+            title="日歷"
+            className="flex items-center justify-center rounded-lg p-2 transition-colors hover:bg-surface-secondary"
+          >
+            <CalendarDays size={18} />
+          </button>
+
+          {/* Settings */}
+          <button
+            onClick={() => setPage('設定')}
+            title="設定"
+            className="flex items-center justify-center rounded-lg p-2 transition-colors hover:bg-surface-secondary"
+
+          >
+            <SettingsIcon size={18} />
+          </button>
+        </div>
 
         {/* 根據全域設定顯示右上角日期時間。 */}
         {dateTimeSettings.visible && (
-          <span className="ml-auto shrink-0 text-sm text-gray-500 tabular-nums">
+          <span className="ml-auto shrink-0 text-sm text-text-secondary tabular-nums">
             {formatDateTime(now.getTime(), dateTimeSettings)}
           </span>
         )}
@@ -299,12 +379,12 @@ function App() {
             <DailyChecklist />
 
             {/* 工作區頁籤：依 workspaceTab 決定選取樣式。 */}
-            <div className="mb-6 flex gap-4 border-b border-gray-200">
+            <div className="mb-6 flex gap-4 border-b border-border">
               <button
                 onClick={() => setWorkspaceTab('工作代辦')}
                 className={`cursor-pointer pb-2 ${workspaceTab === '工作代辦'
-                  ? 'border-b-2 border-gray-800 font-bold'
-                  : 'text-gray-400'
+                  ? 'border-b-2 border-accent font-bold text-text-primary'
+                  : 'text-text-secondary'
                   }`}
               >
                 工作代辦
@@ -313,8 +393,8 @@ function App() {
               <button
                 onClick={() => setWorkspaceTab('自由便籤')}
                 className={`cursor-pointer pb-2 ${workspaceTab === '自由便籤'
-                  ? 'border-b-2 border-gray-800 font-bold'
-                  : 'text-gray-400'
+                  ? 'border-b-2 border-accent font-bold text-text-primary'
+                  : 'text-text-secondary'
                   }`}
               >
                 自由便籤
@@ -360,6 +440,10 @@ function App() {
             hideCountdown={hideCountdown}
             onHideStopwatchChange={setHideStopwatch}
             onHideCountdownChange={setHideCountdown}
+            theme={theme}
+            onThemeChange={setTheme}
+            font={font}
+            onFontChange={setFont}
           />
         ) : page === '碼表' ? (
           null

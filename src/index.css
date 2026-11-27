@@ -1,2 +1,221 @@
 
 @import "tailwindcss";
+
+@font-face {
+  font-family: "Noto Sans TC";
+  src: url("/fonts/noto-sans-tc/NotoSansCJKtc-VF.otf")
+    format("opentype");
+  font-weight: 100 900;
+}
+
+@font-face {
+  font-family: "Noto Serif TC";
+  src: url("/fonts/noto-serif-tc/NotoSerifCJKtc-VF.otf")
+    format("opentype");
+  font-weight: 100 900;
+}
+
+@font-face {
+  font-family: "Open Huninn";
+  src: url("/fonts/open-huninn/jf-openhuninn-2.1.ttf")
+    format("truetype");
+}
+
+@font-face {
+  font-family: "GenSenRounded";
+  src: url("/fonts/gensen-rounded/GenSenRounded2TW-M.otf")
+    format("opentype");
+}
+
+@font-face {
+  font-family: "Iansui";
+  src: url("/fonts/iansui/Iansui-Regular.ttf")
+    format("truetype");
+}
+
+@font-face {
+  font-family: "JasonHandwriting1";
+  src: url("/fonts/jason-handwriting/JasonHandwriting1.ttf")
+    format("truetype");
+}
+
+@font-face {
+  font-family: "JasonHandwriting6";
+  src: url("/fonts/jason-handwriting/JasonHandwriting6.ttf")
+    format("truetype");
+}
+
+@font-face {
+  font-family: "JasonHandwriting7";
+  src: url("/fonts/jason-handwriting/JasonHandwriting7.ttf")
+    format("truetype");
+}
+
+@font-face {
+  font-family: "ChenYuLuoyan";
+  src: url("/fonts/chenyuluoyan/ChenYuluoyan-Thin-Monospaced.ttf")
+    format("truetype");
+}
+
+:root {
+  color-scheme: dark;
+
+  --background: #17191d;
+  --surface: #22252a;
+  --surface-secondary: #30343a;
+  --border: #383d44;
+  --text-primary: #e4e4e7;
+  --text-secondary: #b9bec7;
+  --primary: #d4d4d8;
+  --accent: #8b9bb4;
+  --success: #82b39a;
+  --danger: #d98989;
+}
+
+[data-theme="classic-day"] {
+  color-scheme: light;
+
+  --background: #f4f5f7;
+  --surface: #ffffff;
+  --surface-secondary: #e6e8ec;
+  --border: #dde0e5;
+  --text-primary: #24272d;
+  --text-secondary: #525965;
+  --primary: #343a43;
+  --accent: #526a89;
+  --success: #397a57;
+  --danger: #b94d4d;
+}
+
+[data-theme="midnight-blue"] {
+  color-scheme: dark;
+
+  --background: #172330;
+  --surface: #243447;
+  --surface-secondary: #34485d;
+  --border: #3d5065;
+  --text-primary: #e5edf6;
+  --text-secondary: #a8bfd7;
+  --primary: #d5e2f0;
+  --accent: #7da9d6;
+  --success: #91b8a5;
+  --danger: #d98e95;
+}
+
+[data-theme="forest"] {
+  color-scheme: dark;
+
+  --background: #1d2923;
+  --surface: #293a30;
+  --surface-secondary: #35483c;
+  --border: #3c5043;
+  --text-primary: #e5eee7;
+  --text-secondary: #b5c9ba;
+  --primary: #d6e4da;
+  --accent: #91b69b;
+  --success: #83b69a;
+  --danger: #d08b83;
+}
+
+[data-theme="warm-sand"] {
+  color-scheme: light;
+
+  --background: #f5eee9;
+  --surface: #fffaf5;
+  --surface-secondary: #e8ddd2;
+  --border: #e3d5ca;
+  --text-primary: #49382f;
+  --text-secondary: #8c7666;
+  --primary: #5c4638;
+  --accent: #9b7257;
+  --success: #54816b;
+  --danger: #b85f58;
+}
+
+[data-theme="plum-night"] {
+  color-scheme: dark;
+
+  --background: #24202d;
+  --surface: #302a3b;
+  --surface-secondary: #3d354a;
+  --border: #494155;
+  --text-primary: #ece6f2;
+  --text-secondary: #c0b2d0;
+  --primary: #e1d8eb;
+  --accent: #b39acb;
+  --success: #91b69f;
+  --danger: #d58b9b;
+}
+
+[data-theme="ocean-teal"] {
+  color-scheme: dark;
+
+  --background: #1d2c2c;
+  --surface: #283a3a;
+  --surface-secondary: #354949;
+  --border: #405555;
+  --text-primary: #e0ece9;
+  --text-secondary: #aec9c5;
+  --primary: #d5e5e2;
+  --accent: #82b9b3;
+  --success: #89b6a0;
+  --danger: #d58c8c;
+}
+
+[data-theme="slate"] {
+  color-scheme: dark;
+
+  --background: #2b3038;
+  --surface: #353b44;
+  --surface-secondary: #424953;
+  --border: #4d5661;
+  --text-primary: #e5e9ef;
+  --text-secondary: #b5bdca;
+  --primary: #d9e0e9;
+  --accent: #9aafc7;
+  --success: #8fb5a0;
+  --danger: #d68e91;
+}
+
+[data-theme="lavender-mist"] {
+  color-scheme: light;
+
+  --background: #f0edf6;
+  --surface: #faf8ff;
+  --surface-secondary: #e5dfef;
+  --border: #d9d1e5;
+  --text-primary: #453b58;
+  --text-secondary: #81728f;
+  --primary: #514363;
+  --accent: #8873ad;
+  --success: #55816c;
+  --danger: #b96070;
+}
+
+[data-theme="sage-light"] {
+  color-scheme: light;
+
+  --background: #edf3ed;
+  --surface: #f9fcf8;
+  --surface-secondary: #dfe9df;
+  --border: #d0ddd0;
+  --text-primary: #405849;
+  --text-secondary: #778b79;
+  --primary: #435b49;
+  --accent: #789b80;
+  --success: #477b5d;
+  --danger: #b86660;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-secondary: var(--surface-secondary);
+  --color-border: var(--border);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-primary: var(--primary);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+}

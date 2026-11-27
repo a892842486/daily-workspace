@@ -18,19 +18,18 @@ export default function GlobalTimer({
             type="button"
             onClick={onClick}
             title="番茄鐘"
-            className="flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm tabular-nums hover:bg-gray-100"
+            className="flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm tabular-nums hover:bg-surface-secondary"
         >
             <span>{label}</span>
 
             {/* 根據計時器狀態顯示文字顏色。 */}
-            <span className={`min-w-[2ch] text-center font-medium ${
-                displayTime.startsWith('+') || isRunning
-                    ? 'text-black'
-                    : 'text-gray-400'
-            }`}>
+            <span className={`min-w-[2ch] text-center font-medium ${displayTime.startsWith('+') || isRunning
+                    ? 'text-text-primary'
+                    : 'text-text-secondary'
+                }`}>
                 {displayTime}
             </span>
         </button>
-        
+
     )
 }

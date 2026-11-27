@@ -482,8 +482,8 @@ export default function PomodoroTimer({
                         onClick={() => changeMode(item.id)}
                         disabled={hasStarted}
                         className={`cursor-pointer border-b-2 px-2 py-2 transition-colors disabled:cursor-default ${mode === item.id
-                            ? 'border-gray-800 font-semibold text-gray-800'
-                            : 'border-transparent text-gray-400 enabled:hover:text-gray-600'
+                            ? 'border-accent font-semibold text-text-primary'
+                            : 'border-transparent text-text-secondary enabled:hover:text-text-primary'
                             }`}
                     >
                         {item.label}
@@ -493,7 +493,7 @@ export default function PomodoroTimer({
 
             {/* 倒數時間 */}
             <div className="relative flex h-28 items-center justify-center">
-                <div className={`relative text-6xl font-bold leading-none tabular-nums sm:text-8xl ${isOvertime ? 'text-green-600' : ''}`}>
+                <div className={`relative text-6xl font-bold leading-none tabular-nums sm:text-8xl ${isOvertime ? 'text-success' : ''}`}>
                     {isOvertime && (
                         <span className="absolute right-full mr-1">+</span>
                     )}
@@ -505,7 +505,7 @@ export default function PomodoroTimer({
                     onClick={() => setIsSettingsOpen(prev => !prev)}
                     aria-label="計時設定"
                     title="計時設定"
-                    className={`absolute left-full ml-1 flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-800 sm:ml-3 ${hasStarted ? 'invisible' : ''
+                    className={`absolute left-full ml-1 flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-surface-secondary hover:text-text-primary sm:ml-3 ${hasStarted ? 'invisible' : ''
                         }`}
                 >
                     <Settings size={22} />
@@ -513,7 +513,7 @@ export default function PomodoroTimer({
             </div>
 
             {/* 循環進度 */}
-            <div className="-mt-6 text-sm text-gray-400 tabular-nums">
+            <div className="-mt-6 text-sm text-text-secondary tabular-nums">
                 {currentRound} / 4
             </div>
 
@@ -523,14 +523,14 @@ export default function PomodoroTimer({
                     onClick={resetTimer}
                     aria-label="重置"
                     title="重置"
-                    className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
+                    className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-surface-secondary hover:text-text-primary"
                 >
                     <RotateCcw size={22} />
                 </button>
 
                 <button
                     onClick={toggleTimer}
-                    className="h-11 w-28 cursor-pointer rounded-lg bg-gray-800 text-white hover:bg-gray-700"
+                    className="h-11 w-28 cursor-pointer rounded-lg bg-primary text-background hover:opacity-80"
                 >
                     {isRunning
                         ? '暫停'
@@ -543,7 +543,7 @@ export default function PomodoroTimer({
                     <button
                         type="button"
                         onClick={stopAlert}
-                        className="cursor-pointer rounded-lg bg-red-100 px-3 py-2 text-sm text-red-700 transition-colors hover:bg-red-200"
+                        className="cursor-pointer rounded-lg bg-danger px-3 py-2 text-sm text-background transition-colors hover:opacity-80"
                     >
                         停止提醒
                     </button>
@@ -554,7 +554,7 @@ export default function PomodoroTimer({
                     onClick={nextPhase}
                     aria-label="跳過"
                     title="跳過"
-                    className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
+                    className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-surface-secondary hover:text-text-primary"
                 >
                     <SkipForward size={22} />
                 </button>
@@ -584,13 +584,13 @@ export default function PomodoroTimer({
                     placeholder="這次專注做了什麼？"
                     aria-label="本次專注內容"
                     rows={2}
-                    className="w-full max-w-2xl resize-none rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none transition-colors focus:border-blue-500"
+                    className="w-full max-w-2xl resize-none rounded-lg border border-border bg-surface px-4 py-3 text-sm text-text-primary outline-none transition-colors focus:border-accent"
                 />
             )}
 
             {/* 今日專注成果 */}
             <div className="flex flex-col items-center gap-2 pt-4">
-                <div className="text-sm text-gray-400">
+                <div className="text-sm text-text-secondary">
                     今日專注成果
                 </div>
 
@@ -598,7 +598,7 @@ export default function PomodoroTimer({
                     🍅 {todayTomatoes}
                 </div>
 
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-text-secondary">
                     累計專注 {todayFocusHours} 小時 {todayFocusMinutes} 分鐘
                 </div>
             </div>

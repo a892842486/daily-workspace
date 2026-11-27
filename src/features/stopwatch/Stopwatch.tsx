@@ -85,7 +85,7 @@ function Stopwatch({ onDisplayTimeChange }: Props) {
   return (
     <div className="mx-auto max-w-md">
       <div className="relative mb-8 flex h-28 items-center justify-center">
-        <div className="text-7xl font-bold tabular-nums tracking-tight text-gray-800">
+        <div className="text-7xl font-bold tabular-nums tracking-tight text-text-primary">
           {displayTime}
         </div>
       </div>
@@ -96,14 +96,14 @@ function Stopwatch({ onDisplayTimeChange }: Props) {
           onClick={handleReset}
           aria-label="重置"
           title="重置"
-          className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
+          className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-surface-secondary hover:text-text-primary"
         >
           <RotateCcw size={22} />
         </button>
 
         <button
           onClick={handleStartPause}
-          className="h-11 w-28 cursor-pointer rounded-lg bg-gray-800 text-white hover:bg-gray-700"
+          className="h-11 w-28 cursor-pointer rounded-lg bg-primary text-background hover:opacity-80"
         >
           {startTime !== null
             ? '暫停'

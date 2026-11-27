@@ -137,7 +137,7 @@ export default function Calendar({
                     onClick={() => changeMonth(-1)}
                     aria-label="上個月"
                     title="上個月"
-                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
+                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-text-secondary hover:bg-surface-secondary"
                 >
                     <ChevronLeft size={20} />
                 </button>
@@ -151,7 +151,7 @@ export default function Calendar({
                     onClick={() => changeMonth(1)}
                     aria-label="下個月"
                     title="下個月"
-                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
+                    className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-text-secondary hover:bg-surface-secondary"
                 >
                     <ChevronRight size={20} />
                 </button>
@@ -159,7 +159,7 @@ export default function Calendar({
                 <button
                     type="button"
                     onClick={goToToday}
-                    className="ml-auto cursor-pointer rounded-lg border border-gray-200 px-3 py-2 text-sm hover:bg-gray-100"
+                    className="ml-auto cursor-pointer rounded-lg border border-border px-3 py-2 text-sm hover:bg-surface-secondary"
                 >
                     今天
                 </button>
@@ -172,7 +172,7 @@ export default function Calendar({
                     {weekdays.map((day, index) => (
                         <div
                             key={day}
-                            className={`py-3 text-center text-sm text-gray-400 ${index >= 5 ? 'bg-gray-50' : ''
+                            className={`py-3 text-center text-sm text-text-secondary ${index >= 5 ? 'bg-surface-secondary' : ''
                                 }`}
                         >
                             {day}
@@ -181,7 +181,7 @@ export default function Calendar({
                 </div>
 
                 {/* 日期格子 */}
-                <div className="grid grid-cols-7 overflow-hidden rounded-lg border-t border-l border-gray-200">
+                <div className="grid grid-cols-7 overflow-hidden rounded-lg border-t border-l border-border">
                     {calendarDays.map(date => {
                         const dateKey = getDateKey(date)
                         const isToday = dateKey === today
@@ -216,20 +216,20 @@ export default function Calendar({
                                 onClick={() => selectDate(date)}
                                 aria-pressed={isSelected}
                                 aria-label={dateKey}
-                                className={`flex min-h-20 min-w-0 cursor-pointer flex-col items-start border-r border-b border-gray-200 p-2 text-left transition-colors sm:min-h-28 ${isSelected
-                                    ? 'bg-blue-50 ring-1 ring-inset ring-blue-500'
+                                className={`flex min-h-20 min-w-0 flex-col items-start border-r border-b border-border p-2 text-left transition-colors sm:min-h-28 ${isSelected
+                                    ? 'bg-surface-secondary ring-1 ring-inset ring-accent'
                                     : isWeekend
-                                        ? 'bg-gray-50 hover:bg-gray-100'
-                                        : 'hover:bg-gray-50'
+                                        ? 'bg-surface-secondary hover:bg-surface'
+                                        : 'hover:bg-surface-secondary'
                                     }`}
                             >
                                 {/* 日期 */}
                                 <span
                                     className={`flex h-7 w-7 items-center justify-center rounded-full text-sm tabular-nums ${isToday
-                                        ? 'bg-gray-800 text-white'
+                                        ? 'bg-primary text-background'
                                         : isCurrentMonth
-                                            ? 'text-gray-800'
-                                            : 'text-gray-300'
+                                            ? 'text-text-primary'
+                                            : 'text-text-secondary opacity-50'
                                         }`}
                                 >
                                     {date.getDate()}
@@ -242,7 +242,7 @@ export default function Calendar({
                                             🍅 {dayTomatoes}
                                         </div>
 
-                                        <div className="text-xs text-gray-500 tabular-nums">
+                                        <div className="text-xs text-text-secondary tabular-nums">
                                             {dayFocusHours}h {dayFocusMinutes}m
                                         </div>
                                     </div>
@@ -250,7 +250,7 @@ export default function Calendar({
 
                                 {/* 每日標題 */}
                                 {dailyTitles[dateKey] && (
-                                    <div className="mt-1 w-full line-clamp-2 break-words text-xs font-medium text-gray-700">
+                                    <div className="mt-1 w-full line-clamp-2 break-words text-xs font-medium text-text-primary">
                                         {dailyTitles[dateKey]}
                                     </div>
                                 )}
