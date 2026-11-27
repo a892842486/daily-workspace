@@ -55,8 +55,8 @@ export default function NoteCard({
       }}
       onDragEnd={onDragEnd}
       className={`relative flex flex-col rounded-lg border p-4 transition-colors ${isDragOver
-          ? 'border-blue-500 bg-blue-50'
-          : 'border-gray-200 bg-gray-50'
+        ? 'border-accent bg-surface-secondary'
+        : 'border-border bg-surface-secondary'
         } ${note.size === 'large'
           ? 'min-h-80'
           : note.size === 'medium'
@@ -70,7 +70,7 @@ export default function NoteCard({
           value={note.size}
           onChange={e => onSizeChange(note.id, e.target.value as Note['size'])}
           aria-label="便籤尺寸"
-          className="cursor-pointer bg-transparent text-xs text-gray-500 outline-none"
+          className="cursor-pointer bg-transparent text-xs text-text-secondary outline-none"
         >
           <option value="small">小</option>
           <option value="medium">中</option>
@@ -81,7 +81,7 @@ export default function NoteCard({
         <span
           title="按住便籤拖曳排序"
           aria-label="可拖曳排序"
-          className="cursor-grab select-none text-lg leading-none text-gray-400"
+          className="cursor-grab select-none text-lg leading-none text-text-secondary"
         >
           ⠿
         </span>
@@ -90,7 +90,7 @@ export default function NoteCard({
           onClick={() => onDelete(note.id)}
           aria-label="刪除便籤"
           title="刪除便籤"
-          className="cursor-pointer text-lg text-gray-400 hover:text-gray-800"
+          className="cursor-pointer text-lg text-text-secondary hover:text-danger"
         >
           ×
         </button>

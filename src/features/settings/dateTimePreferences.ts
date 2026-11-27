@@ -41,7 +41,15 @@ export const defaultDateTimeSettings: DateTimePreferences = {
 export function getDateTimeSettings(): DateTimePreferences {
     const saved = localStorage.getItem(DATE_TIME_SETTINGS_KEY)
 
-    return saved
-        ? { ...defaultDateTimeSettings, ...JSON.parse(saved) }
-        : { ...defaultDateTimeSettings }
+    if (saved) {
+        return { ...defaultDateTimeSettings, ...JSON.parse(saved) }
+    }
+
+    // 首次使用時，手機預設隱藏右上角日期時間。
+    const isMobile = window.innerWidth < 768
+
+    return {
+        ...defaultDateTimeSettings,
+        visible: !isMobile,
+    }
 }

@@ -137,7 +137,7 @@ function TimeInput({
                     event.currentTarget.blur()
                 }
             }}
-            className="w-8 rounded text-center tabular-nums outline-none focus:bg-gray-100"
+            className="w-8 rounded bg-transparent text-center tabular-nums text-text-primary outline-none focus:bg-surface-secondary"
         />
     )
 }
@@ -167,7 +167,7 @@ export default function PomodoroSettings({
     }
 
     return (
-        <div className="w-full max-w-sm space-y-5 rounded-xl border border-gray-200 p-5">
+        <div className="w-full max-w-sm space-y-5 rounded-xl border border-border bg-surface p-5">
             {/* 預設方案 */}
             <div className="grid grid-cols-3 gap-2">
                 {presets.map(preset => {
@@ -182,14 +182,14 @@ export default function PomodoroSettings({
                             type="button"
                             onClick={() => onChange(preset.durations)}
                             className={`cursor-pointer rounded-lg border px-2 py-3 transition-colors ${isSelected
-                                ? 'border-gray-800 bg-gray-100'
-                                : 'border-gray-200 hover:bg-gray-100'
+                                ? 'border-accent bg-surface-secondary'
+                                : 'border-border hover:bg-surface-secondary'
                                 }`}
                         >
                             <div className="text-sm font-medium">
                                 {preset.label}
                             </div>
-                            <div className="text-xs text-gray-400">
+                            <div className="text-xs text-text-secondary">
                                 {preset.time}
                             </div>
                         </button>
@@ -204,11 +204,11 @@ export default function PomodoroSettings({
                         key={field.id}
                         className="flex items-center justify-between"
                     >
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-text-secondary">
                             {field.label}
                         </span>
 
-                        <div className="flex items-center rounded-lg border border-gray-200 px-3 py-2">
+                        <div className="flex items-center rounded-lg border border-border bg-surface-secondary px-3 py-2">
                             <TimeInput
                                 label={`${field.label}分鐘`}
                                 value={Math.floor(durations[field.id] / 60)}
@@ -241,7 +241,7 @@ export default function PomodoroSettings({
                 ))}
             </div>
             {/* 提示音設定 */}
-            <div className="space-y-4 border-t border-gray-200 pt-4">
+            <div className="space-y-4 border-t border-border pt-4">
                 {/* 提示音開關 */}
                 <div className="flex items-center gap-2 text-sm">
                     {soundEnabled
@@ -256,7 +256,7 @@ export default function PomodoroSettings({
                         aria-label="計時結束提示音"
                         aria-checked={soundEnabled}
                         onClick={() => onSoundEnabledChange(!soundEnabled)}
-                        className={`relative ml-auto h-6 w-11 cursor-pointer rounded-full transition-colors ${soundEnabled ? 'bg-gray-800' : 'bg-gray-300'
+                        className={`re<span className="w-10 text-right tabular-nums text-text-secondary">Enabled ? 'bg-primary' : 'bg-surface-secondary'
                             }`}
                     >
                         <span
@@ -280,7 +280,7 @@ export default function PomodoroSettings({
                                 onChange={e =>
                                     onTimerSoundChange(e.target.value as TimerSound)
                                 }
-                                className="min-w-0 flex-1 cursor-pointer rounded-md border border-gray-200 px-3 py-2 outline-none focus:border-blue-500"
+                                className="min-w-0 flex-1 cursor-pointer rounded-md border border-border bg-surface px-3 py-2 text-text-primary outline-none focus:border-accent"
                             >
                                 {timerSounds.map(sound => (
                                     <option key={sound.id} value={sound.id}>
@@ -306,10 +306,10 @@ export default function PomodoroSettings({
                                 onChange={e =>
                                     onSoundVolumeChange(Number(e.target.value))
                                 }
-                                className="min-w-0 flex-1 cursor-pointer accent-gray-800"
+                                className="min-w-0 flex-1 cursor-pointer accent-primary"
                             />
 
-                            <span className="w-10 text-right tabular-nums text-gray-500">
+                            <span className="w-10 text-right tabular-nums text-text-secondary">
                                 {soundVolume}%
                             </span>
                         </div>
@@ -326,7 +326,7 @@ export default function PomodoroSettings({
                                 onChange={e =>
                                     onAlertModeChange(e.target.value as TimerAlertMode)
                                 }
-                                className="min-w-0 flex-1 cursor-pointer rounded-md border border-gray-200 px-3 py-2 outline-none focus:border-blue-500"
+                                className="min-w-0 flex-1 cursor-pointer rounded-md border border-border bg-surface px-3 py-2 text-text-primary outline-none focus:border-accent"
                             >
                                 <option value="1">響鈴 1 次</option>
                                 <option value="2">響鈴 2 次</option>
@@ -347,7 +347,7 @@ export default function PomodoroSettings({
                                     soundVolume
                                 ).catch(console.warn)
                             }}
-                            className="mx-auto flex cursor-pointer items-center gap-2 rounded-md border border-gray-200 px-4 py-2 text-sm text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
+                            className="mx-auto flex cursor-pointer items-center gap-2 rounded-md border border-border px-4 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-secondary hover:text-text-primary"
                         >
                             <Play size={14} />
                             試聽

@@ -244,7 +244,7 @@ export default function WorkHistory({
     }
 
     return (
-        <div className="w-full rounded-lg border border-gray-200">
+        <div className="w-full rounded-lg border border-border bg-surface">
             {/* 展開與收合 */}
             <button
                 type="button"
@@ -262,7 +262,7 @@ export default function WorkHistory({
                                 🍅 {totalTomatoes}
                             </span>
 
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-text-secondary">
                                 {totalFocusHours}h {totalFocusMinutes}m
                             </span>
                         </div>
@@ -273,7 +273,7 @@ export default function WorkHistory({
                             ? '今日活動紀錄'
                             : '活動紀錄'}
 
-                        < span className="ml-2 text-sm font-normal text-gray-400">
+                        <span className="ml-2 text-sm font-normal text-text-secondary">
                             {historyItems.length} 筆
                         </span>
                     </span>
@@ -287,7 +287,7 @@ export default function WorkHistory({
             {/* 專注紀錄列表 */}
             {
                 isOpen && (
-                    <div className="border-t border-gray-200 px-4 py-4">
+                    <div className="border-t border-border px-4 py-4">
                         {/* 每日標題 */}
                         <input
                             type="text"
@@ -295,7 +295,7 @@ export default function WorkHistory({
                             onChange={e => onUpdateDailyTitle(e.target.value)}
                             placeholder="一句話說這天做了什麼吧"
                             aria-label="每日標題"
-                            className="mb-4 w-full rounded-lg border border-gray-200 px-4 py-3 text-sm outline-none transition-colors focus:border-blue-500"
+                            className="mb-4 w-full rounded-lg border border-border bg-surface text-text-primary px-4 py-3 text-sm outline-none transition-colors focus:border-accent"
                         />
 
                         {/* 新增紀錄與共用表單 */}
@@ -308,7 +308,7 @@ export default function WorkHistory({
                                             ? closeForm()
                                             : openAddForm('focus')
                                     }
-                                    className="w-full cursor-pointer rounded-md border border-dashed border-gray-300 py-2 text-sm text-gray-500 transition-colors hover:border-gray-500 hover:text-gray-800"
+                                    className="w-full cursor-pointer rounded-md border border-dashed border-border py-2 text-sm text-text-secondary transition-colors hover:border-accent hover:text-text-primary"
                                 >
                                     ＋ 補登專注紀錄
                                 </button>
@@ -320,7 +320,7 @@ export default function WorkHistory({
                                             ? closeForm()
                                             : openAddForm('event')
                                     }
-                                    className="w-full cursor-pointer rounded-md border border-dashed border-gray-300 py-2 text-sm text-gray-500 transition-colors hover:border-gray-500 hover:text-gray-800"
+                                    className="w-full cursor-pointer rounded-md border border-dashed border-border py-2 text-sm text-text-secondary transition-colors hover:border-accent hover:text-text-primary"
                                 >
                                     ＋ 生活紀錄
                                 </button>
@@ -332,7 +332,7 @@ export default function WorkHistory({
                                         e.preventDefault()
                                         submitRecord()
                                     }}
-                                    className="space-y-3 rounded-lg border border-gray-200 p-3"
+                                    className="space-y-3 rounded-lg border border-border bg-surface p-3"
                                 >
 
                                     <div className={`grid gap-3 ${formMode === 'focus'
@@ -340,7 +340,7 @@ export default function WorkHistory({
                                         : 'grid-cols-1'
                                         }`}>
                                         <label className="space-y-1 text-sm">
-                                            <span className="text-gray-500">
+                                            <span className="text-text-secondary">
                                                 {formMode === 'focus'
                                                     ? '結算時間'
                                                     : '紀錄時間'}
@@ -350,13 +350,13 @@ export default function WorkHistory({
                                                 type="time"
                                                 value={manualTime}
                                                 onChange={e => setManualTime(e.target.value)}
-                                                className="w-full rounded-md border border-gray-200 px-3 py-2 outline-none focus:border-blue-500"
+                                                className="w-full rounded-md border border-border bg-surface-secondary text-text-primary px-3 py-2 outline-none focus:border-accent"
                                             />
                                         </label>
 
                                         {formMode === 'focus' && (
                                             <label className="space-y-1 text-sm">
-                                                <span className="text-gray-500">
+                                                <span className="text-text-secondary">
                                                     專注分鐘數
                                                 </span>
 
@@ -366,7 +366,7 @@ export default function WorkHistory({
                                                     step={1}
                                                     value={manualMinutes}
                                                     onChange={e => setManualMinutes(e.target.value)}
-                                                    className="w-full rounded-md border border-gray-200 px-3 py-2 outline-none focus:border-blue-500"
+                                                    className="w-full rounded-md border border-border bg-surface-secondary text-text-primary px-3 py-2 outline-none focus:border-accent"
                                                 />
                                             </label>
                                         )}
@@ -379,7 +379,7 @@ export default function WorkHistory({
                                             placeholder="專注內容（選填）"
                                             aria-label="專注內容"
                                             rows={Math.min(3, manualNote.split('\n').length)}
-                                            className="block w-full resize-none rounded-md border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                                            className="block w-full resize-none rounded-md border border-border bg-surface-secondary text-text-primary px-3 py-2 text-sm outline-none focus:border-accent"
                                         />
                                     ) : (
                                         <input
@@ -388,7 +388,7 @@ export default function WorkHistory({
                                             onChange={e => setManualNote(e.target.value)}
                                             placeholder="發生了什麼事？"
                                             aria-label="生活紀錄內容"
-                                            className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
+                                            className="w-full rounded-md border border-border bg-surface-secondary text-text-primary px-3 py-2 text-sm outline-none focus:border-accent"
                                         />
                                     )}
 
@@ -404,7 +404,7 @@ export default function WorkHistory({
                                         <button
                                             type="button"
                                             onClick={closeForm}
-                                            className="ml-auto cursor-pointer px-3 py-2 text-sm text-gray-500"
+                                            className="ml-auto cursor-pointer px-3 py-2 text-sm text-text-secondary hover:text-text-primary"
                                         >
                                             取消
                                         </button>
@@ -418,7 +418,7 @@ export default function WorkHistory({
                                                     Number(manualMinutes) <= 0
                                                     : !manualNote.trim())
                                             }
-                                            className="cursor-pointer rounded-md bg-gray-800 px-4 py-2 text-sm text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40"
+                                            className="cursor-pointer rounded-md bg-primary px-4 py-2 text-sm text-background hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
                                         >
                                             新增紀錄
                                         </button>
@@ -429,7 +429,7 @@ export default function WorkHistory({
 
                         {/* 空白狀態 */}
                         {historyItems.length === 0 && (
-                            <div className="px-4 py-6 text-center text-sm text-gray-400">
+                            <div className="px-4 py-6 text-center text-sm text-text-secondary">
                                 尚無活動紀錄
                             </div>
                         )}
@@ -441,7 +441,7 @@ export default function WorkHistory({
                                 className="flex gap-3"
                             >
                                 {/* 紀錄時間 */}
-                                <div className="w-24 shrink-0 pt-1 text-sm text-gray-400 tabular-nums">
+                                <div className="w-24 shrink-0 pt-1 text-sm text-text-secondary tabular-nums">
                                     {item.type === 'focus' ? (
                                         formatTime(item.timestamp, dateTimeSettings)
                                     ) : (
@@ -467,13 +467,13 @@ export default function WorkHistory({
                                 <div className="relative flex w-3 shrink-0 justify-center">
                                     <div
                                         className={`absolute z-10 rounded-full ${item.type === 'focus'
-                                            ? 'top-2.5 h-2.5 w-2.5 bg-gray-400'
-                                            : 'top-3 h-1.5 w-1.5 bg-gray-300'
+                                            ? 'top-2.5 h-2.5 w-2.5 bg-accent'
+                                            : 'top-3 h-1.5 w-1.5 bg-text-secondary'
                                             }`}
                                     />
 
                                     {index < historyItems.length - 1 && (
-                                        <div className="absolute top-2.5 -bottom-2.5 w-0.5 bg-gray-200" />
+                                        <div className="absolute top-2.5 -bottom-2.5 w-0.5 bg-border" />
                                     )}
                                 </div>
 
@@ -494,7 +494,7 @@ export default function WorkHistory({
                                                 onClick={() => onDelete(item.record.id)}
                                                 aria-label="刪除專注紀錄"
                                                 title="刪除專注紀錄"
-                                                className="cursor-pointer text-gray-400 transition-colors hover:text-red-500"
+                                                className="cursor-pointer text-text-secondary transition-colors hover:text-danger"
                                             >
                                                 <X size={16} />
                                             </button>
@@ -506,13 +506,13 @@ export default function WorkHistory({
                                             placeholder="專注內容（選填）"
                                             aria-label="專注內容"
                                             rows={Math.min(3, (item.record.note ?? '').split('\n').length)}
-                                            className="block w-full resize-none overflow-y-auto rounded-md border border-transparent px-2 py-1 text-sm leading-5 text-gray-600 outline-none transition-colors placeholder:text-gray-400 hover:border-gray-200 focus:border-blue-500"
+                                            className="block w-full resize-none overflow-y-auto rounded-md border border-transparent bg-surface text-text-primary px-2 py-1 text-sm leading-5 outline-none transition-colors placeholder:text-text-secondary hover:border-border focus:border-accent"
                                         />
                                     </div>
                                 ) : (
                                     /* 完成待辦與生活紀錄 */
                                     <div className="flex min-w-0 flex-1 items-center gap-3 pb-3">
-                                        <div className="min-w-0 flex-1 rounded-full bg-gray-100 px-4 py-1.5 text-sm text-gray-500">
+                                        <div className="min-w-0 flex-1 rounded-full bg-surface-secondary px-4 py-1.5 text-sm text-text-secondary">
                                             <input
                                                 type="text"
                                                 value={item.record.title}
@@ -529,7 +529,7 @@ export default function WorkHistory({
                                             onClick={() => deleteHistoryItem(item)}
                                             aria-label="刪除紀錄"
                                             title="刪除紀錄"
-                                            className="shrink-0 cursor-pointer text-gray-400 transition-colors hover:text-red-500"
+                                            className="shrink-0 cursor-pointer text-text-secondary transition-colors hover:text-danger"
                                         >
                                             <X size={16} />
                                         </button>

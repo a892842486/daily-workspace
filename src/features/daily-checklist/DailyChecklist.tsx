@@ -129,7 +129,7 @@ export default function DailyChecklist() {
     const completedCount = items.filter(item => item.checked).length
 
     return (
-        <section className="mb-6 rounded-lg border border-gray-200">
+        <section className="mb-6 rounded-lg border border-border">
             <button
                 onClick={() => setIsChecklistOpen(!isChecklistOpen)}
                 aria-expanded={isChecklistOpen}
@@ -142,7 +142,7 @@ export default function DailyChecklist() {
             </button>
 
             {isChecklistOpen && (
-                <div className="border-t border-gray-200 p-4">
+                <div className="border-t border-border p-4">
                     <AddButton onClick={addItem}>+ 新增打卡</AddButton>
 
                     <div className="space-y-3">
@@ -192,8 +192,8 @@ export default function DailyChecklist() {
 
                                 <div
                                     className={`flex min-w-0 flex-1 items-center gap-3 rounded border px-3 transition-colors ${dragOverItemId === item.id
-                                        ? 'border-blue-500 bg-blue-50'
-                                        : 'border-gray-200 bg-white focus-within:border-gray-400'
+                                        ? 'border-accent bg-surface-secondary'
+                                        : 'border-border bg-surface focus-within:border-accent'
                                         }`}
                                 >
                                     <input
@@ -201,12 +201,12 @@ export default function DailyChecklist() {
                                         value={item.title}
                                         onChange={e => updateItem(item.id, e.target.value)}
                                         placeholder=""
-                                        className={`min-w-0 flex-1 bg-transparent py-2 outline-none ${item.checked ? 'text-gray-400 line-through' : ''
+                                        className={`min-w-0 flex-1 bg-transparent py-2 outline-none ${item.checked ? 'text-text-secondary line-through' : ''
                                             }`}
                                     />
 
                                     <span
-                                        className="cursor-grab select-none text-gray-400 active:cursor-grabbing"
+                                        className="cursor-grab select-none text-text-secondary active:cursor-grabbing"
                                         title="拖曳排序"
                                     >
                                         ⠿
@@ -215,7 +215,7 @@ export default function DailyChecklist() {
                                     <button
                                         type="button"
                                         onClick={() => deleteItem(item.id)}
-                                        className="cursor-pointer text-gray-400 hover:text-red-500"
+                                        className="cursor-pointer text-text-secondary hover:text-danger"
                                         aria-label="刪除打卡項目"
                                     >
                                         ✕

@@ -270,7 +270,7 @@ function Countdown({ onDisplayTimeChange }: Props) {
                 <div className="relative text-7xl font-bold leading-none tabular-nums tracking-tight">
 
                     {overtimeStartTime !== null && (
-                        <span className="absolute right-full mr-1 text-green-600">
+                        <span className="absolute right-full mr-1 text-success">
                             +
                         </span>
                     )}
@@ -284,7 +284,7 @@ function Countdown({ onDisplayTimeChange }: Props) {
                                         min="0"
                                         value={editHours}
                                         onChange={(e) => setEditHours(e.target.value)}
-                                        className="w-20 rounded-lg border border-gray-200 p-2 text-center text-5xl font-bold tabular-nums"
+                                        className="w-20 rounded-lg border border-border bg-surface-secondary text-text-primary p-2 text-center text-5xl font-bold tabular-nums"
                                     />
                                     <span className="text-4xl font-bold">:</span>
                                 </>
@@ -296,7 +296,7 @@ function Countdown({ onDisplayTimeChange }: Props) {
                                 max="59"
                                 value={editMinutes}
                                 onChange={(e) => setEditMinutes(e.target.value)}
-                                className="w-20 rounded-lg border border-gray-200 p-2 text-center text-5xl font-bold tabular-nums"
+                                className="w-20 rounded-lg border border-border bg-surface-secondary text-text-primary p-2 text-center text-5xl font-bold tabular-nums"
                             />
                             <span className="text-4xl font-bold">:</span>
                             <input
@@ -305,18 +305,18 @@ function Countdown({ onDisplayTimeChange }: Props) {
                                 max="59"
                                 value={editSeconds}
                                 onChange={(e) => setEditSeconds(e.target.value)}
-                                className="w-20 rounded-lg border border-gray-200 p-2 text-center text-5xl font-bold tabular-nums"
+                                className="w-20 rounded-lg border border-border bg-surface-secondary text-text-primary p-2 text-center text-5xl font-bold tabular-nums"
                             />
                         </div>
                     ) : overtimeStartTime !== null ? (
-                        <div className="text-green-600">
+                        <div className="text-success">
                             {overtimeDisplay.replace(/^\+/, '')}
                         </div>
                     ) : (
                         <button
                             onClick={handleEditTime}
                             title="點擊編輯時間"
-                            className="cursor-pointer text-gray-800 hover:text-gray-500 transition-colors"
+                            className="cursor-pointer text-text-primary hover:text-text-secondary transition-colors"
                         >
                             {displayTime}
                         </button>
@@ -326,7 +326,7 @@ function Countdown({ onDisplayTimeChange }: Props) {
                 <button
                     onClick={() => setIsEditing(!isEditing)}
                     title={isEditing ? '完成編輯預設時間' : '編輯預設時間'}
-                    className="absolute left-full ml-3 flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
+                    className="absolute left-full ml-3 flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-surface-secondary hover:text-text-primary"
                 >
                     {isEditing ? <Check size={22} /> : <Settings size={22} />}
                 </button>
@@ -338,7 +338,7 @@ function Countdown({ onDisplayTimeChange }: Props) {
                     onClick={handleReset}
                     aria-label="重置"
                     title="重置"
-                    className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-800"
+                    className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-surface-secondary hover:text-text-primary"
                 >
                     <RotateCcw size={22} />
                 </button>
@@ -346,7 +346,7 @@ function Countdown({ onDisplayTimeChange }: Props) {
                 <button
                     onClick={handleStartPause}
                     disabled={isEditing || isAdding || (!isTimeEditing && currentSeconds <= 0)}
-                    className="h-11 w-28 cursor-pointer rounded-lg bg-gray-800 text-white hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="h-11 w-28 cursor-pointer rounded-lg bg-primary text-background hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     {endTime !== null
                         ? '暫停'
@@ -359,7 +359,7 @@ function Countdown({ onDisplayTimeChange }: Props) {
                     <button
                         type="button"
                         onClick={stopAlert}
-                        className="cursor-pointer rounded-lg bg-red-100 px-3 py-2 text-sm text-red-700 transition-colors hover:bg-red-200"
+                        className="cursor-pointer rounded-lg bg-danger text-background px-3 py-2 text-sm transition-colors hover:opacity-80"
                     >
                         停止提醒
                     </button>
@@ -374,8 +374,8 @@ function Countdown({ onDisplayTimeChange }: Props) {
                     <div
                         key={`${duration}-${index}`}
                         className={`flex items-center gap-1 rounded-lg border px-3 py-2 transition-colors ${selectedSeconds === duration
-                            ? 'border-gray-800 bg-gray-800 text-white'
-                            : 'border-gray-200 text-gray-600 hover:bg-gray-100'
+                            ? 'border-accent bg-primary text-background'
+                            : 'border-border text-text-secondary hover:bg-surface-secondary'
                             }`}
                     >
                         <button
@@ -390,7 +390,7 @@ function Countdown({ onDisplayTimeChange }: Props) {
                             <button
                                 onClick={() => handleDeletePreset(duration)}
                                 title="刪除"
-                                className="cursor-pointer text-red-400 hover:text-red-600"
+                                className="cursor-pointer text-danger hover:opacity-70"
                             >
                                 <X size={16} />
                             </button>
@@ -402,11 +402,11 @@ function Countdown({ onDisplayTimeChange }: Props) {
 
             {/* 提示音設定 */}
             {isEditing && (
-                <div className="mt-6 rounded-xl border border-gray-200 p-4">
+                <div className="mt-6 rounded-xl border border-border bg-surface p-4">
 
                     {/* 顯示小時 */}
                     <div className="mb-4">
-                        <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-600">
+                        <label className="flex cursor-pointer items-center gap-2 text-sm text-text-secondary">
                             <input
                                 type="checkbox"
                                 checked={showHours}
@@ -446,7 +446,7 @@ function Countdown({ onDisplayTimeChange }: Props) {
                                     id="countdown-sound"
                                     value={timerSound}
                                     onChange={e => setTimerSound(e.target.value as TimerSound)}
-                                    className="min-w-0 flex-1 cursor-pointer rounded-md border border-gray-200 px-3 py-2 outline-none focus:border-blue-500"
+                                    className="min-w-0 flex-1 cursor-pointer rounded-md border border-border bg-surface-secondary text-text-primary px-3 py-2 outline-none focus:border-accent"
                                 >
                                     {timerSounds.map(sound => (
                                         <option key={sound.id} value={sound.id}>
@@ -487,7 +487,7 @@ function Countdown({ onDisplayTimeChange }: Props) {
                                     id="countdown-alert-mode"
                                     value={alertMode}
                                     onChange={e => setAlertMode(e.target.value as TimerAlertMode)}
-                                    className="min-w-0 flex-1 cursor-pointer rounded-md border border-gray-200 px-3 py-2 outline-none focus:border-blue-500"
+                                    className="min-w-0 flex-1 cursor-pointer rounded-md border border-border bg-surface-secondary text-text-primary px-3 py-2 outline-none focus:border-accent"
                                 >
                                     <option value="1">響鈴 1 次</option>
                                     <option value="2">響鈴 2 次</option>
@@ -508,7 +508,7 @@ function Countdown({ onDisplayTimeChange }: Props) {
                                             .then(() => playTimerSound(timerSound, soundVolume, 1))
                                             .catch(console.warn)
                                     }}
-                                    className="cursor-pointer rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100"
+                                    className="cursor-pointer rounded-lg border border-border px-4 py-2 text-sm text-text-secondary transition-colors hover:bg-surface-secondary hover:text-text-primary"
                                 >
                                     ▷ 試聽
                                 </button>
@@ -524,12 +524,12 @@ function Countdown({ onDisplayTimeChange }: Props) {
                     <button
                         onClick={() => setIsAdding(true)}
                         disabled={isEditing}
-                        className="w-full cursor-pointer rounded-lg border border-dashed border-gray-300 py-3 text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="w-full cursor-pointer rounded-lg border border-dashed border-border py-3 text-text-secondary transition-colors hover:bg-surface-secondary hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         + 新增倒數
                     </button>
                 ) : (
-                    <div className="rounded-lg border border-gray-200 p-4">
+                    <div className="rounded-lg border border-border bg-surface p-4">
                         <div className="mb-4 flex items-center justify-center gap-3">
                             {showHours && (
                                 <div className="flex flex-col items-center gap-1">
@@ -538,9 +538,9 @@ function Countdown({ onDisplayTimeChange }: Props) {
                                         min="0"
                                         value={hours}
                                         onChange={(value) => setHours(value.target.value)}
-                                        className="w-16 rounded-lg border border-gray-200 p-2 text-center"
+                                        className="w-16 rounded-lg border border-border bg-surface-secondary text-text-primary p-2 text-center"
                                     />
-                                    <span className="text-sm text-gray-500">時</span>
+                                    <span className="text-sm text-text-secondary">時</span>
                                 </div>
                             )}
 
@@ -550,9 +550,9 @@ function Countdown({ onDisplayTimeChange }: Props) {
                                     min="0"
                                     value={minutes}
                                     onChange={(value) => setMinutes(value.target.value)}
-                                    className="w-16 rounded-lg border border-gray-200 p-2 text-center"
+                                    className="w-16 rounded-lg border border-border bg-surface-secondary text-text-primary p-2 text-center"
                                 />
-                                <span className="text-sm text-gray-500">分</span>
+                                <span className="text-sm text-text-secondary">分</span>
                             </div>
 
                             <div className="flex flex-col items-center gap-1">
@@ -562,23 +562,23 @@ function Countdown({ onDisplayTimeChange }: Props) {
                                     max="59"
                                     value={seconds}
                                     onChange={(value) => setSeconds(value.target.value)}
-                                    className="w-16 rounded-lg border border-gray-200 p-2 text-center"
+                                    className="w-16 rounded-lg border border-border bg-surface-secondary text-text-primary p-2 text-center"
                                 />
-                                <span className="text-sm text-gray-500">秒</span>
+                                <span className="text-sm text-text-secondary">秒</span>
                             </div>
                         </div>
 
                         <div className="flex justify-center gap-2">
                             <button
                                 onClick={handleAddPreset}
-                                className="cursor-pointer rounded-lg bg-gray-800 px-4 py-2 text-white hover:bg-gray-700"
+                                className="cursor-pointer rounded-lg bg-primary px-4 py-2 text-background hover:opacity-80"
                             >
                                 新增
                             </button>
 
                             <button
                                 onClick={() => setIsAdding(false)}
-                                className="cursor-pointer rounded-lg px-4 py-2 text-gray-500 hover:bg-gray-100"
+                                className="cursor-pointer rounded-lg px-4 py-2 text-text-secondary hover:bg-surface-secondary hover:text-text-primary"
                             >
                                 取消
                             </button>
