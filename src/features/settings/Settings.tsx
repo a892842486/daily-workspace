@@ -60,7 +60,7 @@ const themes: { id: Theme; color: string; name: string }[] = [
 const fonts: { id: Font; name: string; family: string }[] = [
   {
     id: 'system',
-    name: '系統預設（預設）',
+    name: '系統預設',
     family: 'inherit',
   },
   {
